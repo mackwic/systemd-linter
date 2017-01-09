@@ -5,10 +5,20 @@ extern crate nom;
 use nom::*;
 
 fn c_always_true(_c: char) -> bool { true }
-fn c_is_alphanumeric(c: char) -> bool { c.is_alphanumeric() }
 fn c_is_alphabetic(c: char) -> bool { c.is_alphabetic() }
-fn c_is_path_element(c: char) -> bool {
-    c.is_alphanumeric() || c == ' ' || c == '/' || c == '-' || c == '_' || c == '.'
+fn c_is_value_element(c: char) -> bool {
+    match c {
+        ' '|'/'|'-'|'_'|'.'|'@'|'+' => true,
+        c if c.is_alphanumeric() => true,
+        _ => false
+    }
+}
+fn c_is_key_element(c: char) -> bool {
+    match c {
+        '!'|'|'|'@' => true,
+        c if c.is_alphabetic() => true,
+        _ => false
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -94,11 +104,11 @@ fn parse_category_should_reject_more_than_one_word() {
 named!(
     parse_directive<&str, SystemdItem>,
     do_parse!(
-        key: take_while1_s!(c_is_alphabetic) >>
+        key: take_while1_s!(c_is_key_element) >>
         eat_separator!(" ") >>
         tag!("=") >>
         eat_separator!(" ") >>
-        value: take_while1_s!(c_is_path_element) >>
+        value: take_while1_s!(c_is_value_element) >>
         (SystemdItem::Directive(String::from(key), String::from(value)))
     )
 );
@@ -138,7 +148,7 @@ fn parse_directive_should_reject_the_directive_with_no_value() {
 
 #[test]
 fn parse_directive_should_reject_the_directive_with_invalid_characters() {
-    let inputs = vec!["Yo == 42", "Yo =! 42", "Yo = !42", "Yo = @42"];
+    let inputs = vec!["Yo == 42", "Yo =! 42", "Yo = !42"];
     for input in inputs {
         let res = parse_directive(input);
         assert!(res.is_err(), "expected {} to be rejected", input);
@@ -163,6 +173,25 @@ fn parse_directive_doesnt_consume_comment_at_end_of_line() {
     let res = parse_directive(input);
 
     assert_eq!("# I like this one", res.unwrap().0)
+}
+
+#[test]
+fn parse_directive_should_accept_exotic_output() {
+    let inputs = vec![
+        ("!ConditionPathIsMountPoint=/mnt/plop", "bang in keys"),
+        ("|ConditionPathIsMountPoint=/mnt/plop", "pipe in keys"),
+        ("Alias=foo.service.wants/bar.service", "Alias=foo.service.wants/bar.service"),
+        ("ExecStart=-/bin/false", "- in value"),
+        ("ExecStart=@/bin/echo", "@ in value"),
+        ("ExecStart=+/bin/true", "+ in value"),
+        ("ExecStart=+@-/bin/true", "+@- in value"),
+        ("ExecStart=/bin/echo $TERM", "$ in value"),
+    ];
+
+    for (input, msg) in inputs {
+        let res = parse_directive(input);
+        assert!(res.is_done(), "it should accept {}", msg)
+    }
 }
 
 pub fn main() {
