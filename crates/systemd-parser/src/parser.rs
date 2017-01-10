@@ -27,7 +27,7 @@ named!(
         eat_separator!(" \t")      >>
         tag_s!("#")                >>
         comment: take_whole_line   >>
-        (SystemdItem::Comment(String::from(comment.trim())))
+        (SystemdItem::Comment(comment.trim()))
     )
 );
 
@@ -40,7 +40,7 @@ named!(
         category: take_while1_s!(c_is_alphabetic) >>
         eat_separator!(" ")     >>
         tag!("]")               >>
-        (SystemdItem::Category(String::from(category)))
+        (SystemdItem::Category(category))
     )
 );
 
@@ -53,7 +53,7 @@ named!(
         tag!("=")               >>
         eat_separator!(" ")     >>
         value: take_while1_s!(c_is_value_element) >>
-        (SystemdItem::Directive(String::from(key), String::from(value)))
+        (SystemdItem::Directive(key, value))
     )
 );
 
@@ -82,8 +82,5 @@ pub fn parse_unit(input: &str) -> Result<Vec<SystemdItem>, Vec<IError<&str>>> {
         Ok(oks)
     }
 }
-
-
-
 
 

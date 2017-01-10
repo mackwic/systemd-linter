@@ -33,7 +33,7 @@ mod parse_comment {
     #[test]
     fn it_should_trim_whitespaces() {
         let res = parse_comment("# yo ");
-        let expected = SystemdItem::Comment(String::from("yo"));
+        let expected = SystemdItem::Comment("yo");
         assert_eq!(expected, res.unwrap().1)
     }
 }
@@ -52,7 +52,7 @@ mod parse_category {
     fn it_should_consume_the_category() {
         let input = "[ Category ]";
         let res = parse_category(input);
-        let expected = SystemdItem::Category(String::from("Category"));
+        let expected = SystemdItem::Category("Category");
         assert_eq!(expected, res.unwrap().1);
     }
 
@@ -79,7 +79,7 @@ mod parse_directive {
     fn it_should_consume_the_directive_key_and_value() {
         let input = "ExecStart = 42";
         let res = parse_directive(input);
-        let expected = SystemdItem::Directive(String::from("ExecStart"), String::from("42"));
+        let expected = SystemdItem::Directive("ExecStart", "42");
 
         assert_eq!(expected, res.unwrap().1);
     }
@@ -114,8 +114,8 @@ mod parse_directive {
         let input = "ExecStart=/usr/sbin/some-fancy-httpd-server -p 3000 -h localhost -l server.log";
         let res = parse_directive(input);
         let expected = SystemdItem::Directive(
-            String::from("ExecStart"),
-            String::from("/usr/sbin/some-fancy-httpd-server -p 3000 -h localhost -l server.log")
+            "ExecStart",
+            "/usr/sbin/some-fancy-httpd-server -p 3000 -h localhost -l server.log"
         );
 
         assert_eq!(expected, res.unwrap().1);
@@ -163,14 +163,14 @@ mod parse_line {
     fn it_can_parse_category() {
         let input = "[Unit]";
         let res = parse_line(input);
-        assert_eq!(SystemdItem::Category(String::from("Unit")), res.unwrap().1)
+        assert_eq!(SystemdItem::Category("Unit"), res.unwrap().1)
     }
 
     #[test]
     fn it_can_parse_comment() {
         let input = "# comment";
         let res = parse_line(input);
-        assert_eq!(SystemdItem::Comment(String::from("comment")), res.unwrap().1)
+        assert_eq!(SystemdItem::Comment("comment"), res.unwrap().1)
     }
 
     #[test]
@@ -178,7 +178,7 @@ mod parse_line {
         let input = "ExecStart=/usr/bin/true";
         let res = parse_line(input);
         assert_eq!(
-            SystemdItem::Directive(String::from("ExecStart"), String::from("/usr/bin/true")),
+            SystemdItem::Directive("ExecStart", "/usr/bin/true"),
             res.unwrap().1
         )
     }
@@ -198,7 +198,7 @@ mod parse_unit {
         let input = DUMMY_UNIT_STR;
         let res = parse_unit(input);
         assert_eq!(
-            &SystemdItem::Category(String::from("Unit")),
+            &SystemdItem::Category("Unit"),
             res.unwrap().get(0).unwrap()
         )
     }
@@ -209,7 +209,7 @@ mod parse_unit {
 [Unit]";
         let res = parse_unit(input);
         assert_eq!(
-            &SystemdItem::Category(String::from("Unit")),
+            &SystemdItem::Category("Unit"),
             res.unwrap().get(0).unwrap()
         )
     }
@@ -219,7 +219,7 @@ mod parse_unit {
         let input = "\n     \t   [Unit]  ";
         let res = parse_unit(input);
         assert_eq!(
-            &SystemdItem::Category(String::from("Unit")),
+            &SystemdItem::Category("Unit"),
             res.unwrap().get(0).unwrap()
         )
     }
@@ -227,10 +227,10 @@ mod parse_unit {
     #[test]
     fn it_works_with_the_dummy() {
         let dummy_unit_parsed = vec![
-            SystemdItem::Category("Unit".into()),
-            SystemdItem::Directive("Description".into(), "This is a dummy unit file".into()),
-            SystemdItem::Category("Service".into()),
-            SystemdItem::Directive("ExecStart".into(), "/usr/bin/true".into())
+            SystemdItem::Category("Unit"),
+            SystemdItem::Directive("Description", "This is a dummy unit file"),
+            SystemdItem::Category("Service"),
+            SystemdItem::Directive("ExecStart", "/usr/bin/true")
         ];
 
         let res = parse_unit(DUMMY_UNIT_STR);
