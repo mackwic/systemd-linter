@@ -1,5 +1,5 @@
 
-use items::*;
+use items::SystemdItem;
 use nom::*;
 
 fn c_always_true(_c: char) -> bool { true }
@@ -20,19 +20,10 @@ fn c_is_key_element(c: char) -> bool {
 }
 
 
-named!(take_whole_line<&str, &str>, take_while_s!(c_always_true));
-
-#[test]
-fn take_whole_line_returns_whole_line() {
-    let input = " yo 👋!";
-    let res = take_whole_line(input);
-
-    assert!(res.is_done());
-    assert_eq!(input, res.unwrap().1)
-}
+named!(pub take_whole_line<&str, &str>, take_while_s!(c_always_true));
 
 named!(
-    parse_comment<&str, SystemdItem>,
+    pub parse_comment<&str, SystemdItem>,
     do_parse!(
         tag_s!("#")                >>
         comment: take_whole_line   >>
@@ -40,27 +31,8 @@ named!(
     )
 );
 
-#[test]
-fn parse_comment_should_fail_when_not_starting_with_hash_char() {
-    let res = parse_comment("yo");
-    assert_eq!(true, res.is_err())
-}
-
-#[test]
-fn parse_comment_should_be_done_when_starting_with_hash_char() {
-    let res = parse_comment("# yo");
-    assert_eq!(true, res.is_done())
-}
-
-#[test]
-fn parse_comment_should_trim_whitespaces() {
-    let res = parse_comment("# yo ");
-    let expected = SystemdItem::Comment(String::from("yo"));
-    assert_eq!(expected, res.unwrap().1)
-}
-
 named!(
-    parse_category<&str, SystemdItem>,
+    pub parse_category<&str, SystemdItem>,
     do_parse!(
         tag!("[") >>
         eat_separator!(" ") >>
@@ -71,30 +43,8 @@ named!(
     )
 );
 
-#[test]
-fn parse_category_should_be_done() {
-    let input = "[Category]";
-    let res = parse_category(input);
-    assert!(res.is_done())
-}
-
-#[test]
-fn parse_category_should_consume_the_category() {
-    let input = "[ Category ]";
-    let res = parse_category(input);
-    let expected = SystemdItem::Category(String::from("Category"));
-    assert_eq!(expected, res.unwrap().1);
-}
-
-#[test]
-fn parse_category_should_reject_more_than_one_word() {
-    let input = "[ Category wrong ]";
-    let res = parse_category(input);
-    assert!(res.is_err())
-}
-
 named!(
-    parse_directive<&str, SystemdItem>,
+    pub parse_directive<&str, SystemdItem>,
     do_parse!(
         key: take_while1_s!(c_is_key_element) >>
         eat_separator!(" ") >>
@@ -105,83 +55,34 @@ named!(
     )
 );
 
-#[test]
-fn parse_directive_should_be_done() {
-    let input = "ExecStart=42";
-    let res = parse_directive(input);
+named!(
+    pub parse_line<&str, SystemdItem>,
+    alt!(parse_category | parse_comment | parse_directive)
+);
 
-    assert!(res.is_done());
-}
+pub fn parse_unit(input: &str) -> Result<Vec<SystemdItem>, Vec<IError<&str>>> {
+    let mut errors = vec!();
+    let mut oks = vec!();
+    let mixed_res = input.lines()
+                         .map(|line| line.trim())
+                         .filter(|line| !line.is_empty())
+                         .map(parse_line);
 
-#[test]
-fn parse_directive_should_consume_the_directive_key_and_value() {
-    let input = "ExecStart = 42";
-    let res = parse_directive(input);
-    let expected = SystemdItem::Directive(String::from("ExecStart"), String::from("42"));
+    for res in mixed_res {
+        match res.to_full_result() {
+            Ok(ok_res) => oks.push(ok_res),
+            Err(err_res) => errors.push(err_res)
+        }
+    }
 
-    assert_eq!(expected, res.unwrap().1);
-}
-
-#[test]
-fn parse_directive_should_reject_the_directive_with_no_key() {
-    let input = " = 42";
-    let res = parse_directive(input);
-
-    assert!(res.is_err());
-}
-
-#[test]
-fn parse_directive_should_reject_the_directive_with_no_value() {
-    let input = "Yo =";
-    let res = parse_directive(input);
-
-    assert!(res.is_err());
-}
-
-#[test]
-fn parse_directive_should_reject_the_directive_with_invalid_characters() {
-    let inputs = vec!["Yo == 42", "Yo =! 42", "Yo = !42"];
-    for input in inputs {
-        let res = parse_directive(input);
-        assert!(res.is_err(), "expected {} to be rejected", input);
+    if errors.len() > 0 {
+        Err(errors)
+    } else {
+        Ok(oks)
     }
 }
 
-#[test]
-fn parse_directive_should_consume_path_in_values() {
-    let input = "ExecStart=/usr/sbin/some-fancy-httpd-server -p 3000 -h localhost -l server.log";
-    let res = parse_directive(input);
-    let expected = SystemdItem::Directive(
-        String::from("ExecStart"),
-        String::from("/usr/sbin/some-fancy-httpd-server -p 3000 -h localhost -l server.log")
-    );
 
-    assert_eq!(expected, res.unwrap().1);
-}
 
-#[test]
-fn parse_directive_doesnt_consume_comment_at_end_of_line() {
-    let input = "ExecStart=/usr/sbin/some-fancy-httpd-server # I like this one";
-    let res = parse_directive(input);
 
-    assert_eq!("# I like this one", res.unwrap().0)
-}
 
-#[test]
-fn parse_directive_should_accept_exotic_output() {
-    let inputs = vec![
-        ("!ConditionPathIsMountPoint=/mnt/plop", "bang in keys"),
-        ("|ConditionPathIsMountPoint=/mnt/plop", "pipe in keys"),
-        ("Alias=foo.service.wants/bar.service", "Alias=foo.service.wants/bar.service"),
-        ("ExecStart=-/bin/false", "- in value"),
-        ("ExecStart=@/bin/echo", "@ in value"),
-        ("ExecStart=+/bin/true", "+ in value"),
-        ("ExecStart=+@-/bin/true", "+@- in value"),
-        ("ExecStart=/bin/echo $TERM", "$ in value"),
-    ];
-
-    for (input, msg) in inputs {
-        let res = parse_directive(input);
-        assert!(res.is_done(), "it should accept {}", msg)
-    }
-}
