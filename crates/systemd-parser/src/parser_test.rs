@@ -184,7 +184,7 @@ mod parse_line {
     }
 }
 
-mod parse_file {
+mod parse_unit {
     pub use super::*;
 
     const DUMMY_UNIT_STR : &'static str = "[Unit]
@@ -192,13 +192,6 @@ mod parse_file {
         [Service]
         ExecStart=/usr/bin/true
     ";
-
-    #[test]
-    fn it_is_present() {
-        let input = DUMMY_UNIT_STR;
-        let res = parse_unit(input);
-        assert!(res.is_ok())
-    }
 
     #[test]
     fn it_returns_a_vec_of_parsed_lines() {
@@ -233,7 +226,6 @@ mod parse_file {
 
     #[test]
     fn it_works_with_the_dummy() {
-        let input = DUMMY_UNIT_STR;
         let dummy_unit_parsed = vec![
             SystemdItem::Category("Unit".into()),
             SystemdItem::Directive("Description".into(), "This is a dummy unit file".into()),

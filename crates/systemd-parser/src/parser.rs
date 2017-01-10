@@ -19,12 +19,12 @@ fn c_is_key_element(c: char) -> bool {
     }
 }
 
-
 named!(pub take_whole_line<&str, &str>, take_while_s!(c_always_true));
 
 named!(
     pub parse_comment<&str, SystemdItem>,
     do_parse!(
+        eat_separator!(" \t")      >>
         tag_s!("#")                >>
         comment: take_whole_line   >>
         (SystemdItem::Comment(String::from(comment.trim())))
@@ -34,11 +34,12 @@ named!(
 named!(
     pub parse_category<&str, SystemdItem>,
     do_parse!(
-        tag!("[") >>
-        eat_separator!(" ") >>
+        eat_separator!(" \t")   >>
+        tag!("[")               >>
+        eat_separator!(" ")     >>
         category: take_while1_s!(c_is_alphabetic) >>
-        eat_separator!(" ") >>
-        tag!("]") >>
+        eat_separator!(" ")     >>
+        tag!("]")               >>
         (SystemdItem::Category(String::from(category)))
     )
 );
@@ -46,10 +47,11 @@ named!(
 named!(
     pub parse_directive<&str, SystemdItem>,
     do_parse!(
+        eat_separator!(" \t")   >>
         key: take_while1_s!(c_is_key_element) >>
-        eat_separator!(" ") >>
-        tag!("=") >>
-        eat_separator!(" ") >>
+        eat_separator!(" ")     >>
+        tag!("=")               >>
+        eat_separator!(" ")     >>
         value: take_while1_s!(c_is_value_element) >>
         (SystemdItem::Directive(String::from(key), String::from(value)))
     )
@@ -64,8 +66,7 @@ pub fn parse_unit(input: &str) -> Result<Vec<SystemdItem>, Vec<IError<&str>>> {
     let mut errors = vec!();
     let mut oks = vec!();
     let mixed_res = input.lines()
-                         .map(|line| line.trim())
-                         .filter(|line| !line.is_empty())
+                         .filter(|line| !line.trim().is_empty()) // skip white lines
                          .map(parse_line);
 
     for res in mixed_res {
