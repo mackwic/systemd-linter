@@ -1,0 +1,12 @@
+[package]
+name = "systemd-parser"
+version = "0.1.0"
+authors = ["Thomas Wickham <twickham@octo.com>"]
+
+[dependencies]
+
+[dependencies.nom]
+version = "^2.0"
+features = ["verbose-errors"]
+
+
