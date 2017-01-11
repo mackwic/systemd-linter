@@ -1,7 +1,9 @@
 [package]
 name = "systemd-linter"
+description = "A SystemD unit files linter"
 version = "0.1.0"
 authors = ["Thomas Wickham <twickham@octo.com>"]
+license = "MPL-2.0"
 
 [dependencies]
 systemd-parser = { version = "0.1.0", path = "./crates/systemd-parser" }
