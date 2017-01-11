@@ -5,12 +5,19 @@ use systemd_parser::items::*;
 
 pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 
-    if let None = unit.lookup_by_key("Description") {
-        return Err(LintResult {
-            severity: LintSeverity::Lint,
-            message: "Consider filling the Description= field",
-            code: LintCode::LintMissingDescription,
-        })
+    if let Some(&DirectiveEntry::Solo(ref type_entry)) = unit.lookup_by_key("Type") {
+
+        if type_entry.value() != "Simple" {
+            return Ok(())
+        }
+
+        if let None = unit.lookup_by_key("ExecStart") {
+            return Err(LintResult {
+                severity: LintSeverity::Error,
+                message: "Service with Type==Simple MUST set ExecStart= field",
+                code: LintCode::ErrorServiceSimpleMustHaveExecstart,
+            })
+        }
     }
 
     Ok(())
@@ -20,9 +27,8 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 fn success_case() {
     // arrange
     let input = "
-        [Unit]
-        Description= a dummy unit
         [Service]
+        Type=Simple
         ExecStart=/bin/true
     ";
     let unit = systemd_parser::parse_string(input).unwrap();
@@ -37,7 +43,7 @@ fn error_case() {
     // arrange
     let input = "
         [Service]
-        ExecStart=/bin/true
+        Type=Simple
     ";
     let unit = systemd_parser::parse_string(input).unwrap();
     // act
@@ -45,4 +51,3 @@ fn error_case() {
     // assert
     assert!(res.is_err());
 }
-

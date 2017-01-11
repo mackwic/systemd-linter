@@ -16,6 +16,12 @@ pub struct UnitDirective {
 }
 
 impl UnitDirective {
+    pub fn value(&self) -> &str { &self.value }
+    pub fn key(&self) -> &str { &self.key }
+    pub fn category(&self) -> &str { &self.category }
+}
+
+impl UnitDirective {
     pub fn new(category: &str, key: &str, value: &str) -> UnitDirective {
         UnitDirective {
             category: String::from(category),

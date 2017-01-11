@@ -13,9 +13,9 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
     if let None = unit.lookup_by_key("Type") {
 
         return Err(LintResult {
-            severity: LintSeverity::Lint,
-            message: "Consider filling the Description= field",
-            code: LintCode::LintMissingDescription,
+            severity: LintSeverity::Warning,
+            message: "Service Type= should always be explicit. Fill the Type= field.",
+            code: LintCode::WarnServiceTypeShouldAlwaysBeExplicit,
         })
     }
 
@@ -23,7 +23,7 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 }
 
 #[test]
-fn it_should_exists() {
+fn success_case() {
     // arrange
     let input = "
         [Service]
@@ -38,7 +38,7 @@ fn it_should_exists() {
 }
 
 #[test]
-fn it_should_detect_missing_description() {
+fn error_case() {
     // arrange
     let input = "
         [Service]
