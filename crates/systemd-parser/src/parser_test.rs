@@ -140,6 +140,8 @@ mod parse_directive {
             ("ExecStart=+/bin/true", "+ in value"),
             ("ExecStart=+@-/bin/true", "+@- in value"),
             ("ExecStart=/bin/echo $TERM", "$ in value"),
+            ("Environment=\"https_proxy=http://squidaws.internet.iz.eu-west-1.aws:8080\"",
+             "inline quotes and URI"),
         ];
 
         for (input, msg) in inputs {

@@ -6,7 +6,7 @@ fn c_always_true(_c: char) -> bool { true }
 fn c_is_alphabetic(c: char) -> bool { c.is_alphabetic() }
 fn c_is_value_element(c: char) -> bool {
     match c {
-        ' '|'/'|'-'|'_'|'.'|'@'|'+' => true,
+        ' '|'/'|'-'|'_'|'.'|'@'|'+'|':'|'"'|'|'|'\'' => true,
         c if c.is_alphanumeric() => true,
         _ => false
     }
