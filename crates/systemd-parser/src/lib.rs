@@ -2,8 +2,8 @@
 #[macro_use]
 extern crate nom;
 
-mod items;
-mod parser;
+pub mod items;
+pub mod parser;
 
 #[cfg(test)]
 mod parser_test;
