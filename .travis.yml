@@ -6,21 +6,15 @@ language: rust
 services: docker
 sudo: required
 
-# TODO This is the Rust channel that build jobs will use by default but can be
-# overridden on a case by case basis down below
 rust: stable
 
 env:
   global:
-    # TODO Update this to match the name of your project.
     - CRATE_NAME=systemd-linter
-
     # default job
     - TARGET=x86_64-unknown-linux-gnu
 
 matrix:
-  # TODO These are all the build jobs. Adjust as necessary. Comment out what you
-  # don't need
   include:
     # Linux
     - env: TARGET=i686-unknown-linux-gnu
@@ -28,35 +22,35 @@ matrix:
     # - env: TARGET=x86_64-unknown-linux-gnu  # this is the default job
     - env: TARGET=x86_64-unknown-linux-musl
 
-      #    # OSX
-      #    - env: TARGET=i686-apple-darwin
-      #      os: osx
-      #    - env: TARGET=x86_64-apple-darwin
-      #      os: osx
+#    # OSX
+#    - env: TARGET=i686-apple-darwin
+#      os: osx
+#    - env: TARGET=x86_64-apple-darwin
+#      os: osx
 
-        #    # *BSD
-        #    - env: TARGET=i686-unknown-freebsd DISABLE_TESTS=1
-        #    - env: TARGET=x86_64-unknown-freebsd DISABLE_TESTS=1
-        #    - env: TARGET=x86_64-unknown-netbsd DISABLE_TESTS=1
-        #
-        #    # Other architectures
-        #    - env: TARGET=aarch64-unknown-linux-gnu
-        #    - env: TARGET=armv7-unknown-linux-gnueabihf
-        #    - env: TARGET=mips-unknown-linux-gnu
-        #    - env: TARGET=mips64-unknown-linux-gnuabi64
-        #    - env: TARGET=mips64el-unknown-linux-gnuabi64
-        #    - env: TARGET=mipsel-unknown-linux-gnu
-        #    - env: TARGET=powerpc-unknown-linux-gnu
-        #    - env: TARGET=powerpc64-unknown-linux-gnu
-        #    - env: TARGET=powerpc64le-unknown-linux-gnu
-        #    - env: TARGET=s390x-unknown-linux-gnu DISABLE_TESTS=1
-        #
-        #    # Testing other channels
-        #    - env: TARGET=x86_64-unknown-linux-gnu
-        #      rust: nightly
-        #    - env: TARGET=x86_64-apple-darwin
-        #      os: osx
-        #      rust: nightly
+#    # *BSD
+#    - env: TARGET=i686-unknown-freebsd DISABLE_TESTS=1
+#    - env: TARGET=x86_64-unknown-freebsd DISABLE_TESTS=1
+#    - env: TARGET=x86_64-unknown-netbsd DISABLE_TESTS=1
+#
+#    # Other architectures
+#    - env: TARGET=aarch64-unknown-linux-gnu
+#    - env: TARGET=armv7-unknown-linux-gnueabihf
+#    - env: TARGET=mips-unknown-linux-gnu
+#    - env: TARGET=mips64-unknown-linux-gnuabi64
+#    - env: TARGET=mips64el-unknown-linux-gnuabi64
+#    - env: TARGET=mipsel-unknown-linux-gnu
+#    - env: TARGET=powerpc-unknown-linux-gnu
+#    - env: TARGET=powerpc64-unknown-linux-gnu
+#    - env: TARGET=powerpc64le-unknown-linux-gnu
+#    - env: TARGET=s390x-unknown-linux-gnu DISABLE_TESTS=1
+#
+#    # Testing other channels
+#    - env: TARGET=x86_64-unknown-linux-gnu
+#      rust: nightly
+#    - env: TARGET=x86_64-apple-darwin
+#      os: osx
+#      rust: nightly
 
 before_install: set -e
 
@@ -73,12 +67,7 @@ before_deploy:
   - sh ci/before_deploy.sh
 
 deploy:
-  # TODO update `api_key.secure`
-  # - Create a `public_repo` GitHub token. Go to: https://github.com/settings/tokens/new
-  # - Encrypt it: `travis encrypt GH_TOKEN=0123456789012345678901234567890123456789`
-  # - Paste the output down here
-  api_key:
-    secure: "ieV4di6L+LnR8RcPW263JqoOi1es4MOfGtqMCrljUyNcH6H+F8847l2YVurWbYvfOxSvKsE/c4Z/Q7s9BnqhXtGi5qV5+zb+klKbmi0ySU0yJuY9K3SGZKdCVd1yIRYqpyUAxP3Jaz8y0p3jc+dcZr4xWf74kDVk9SxEV0rYhg0kRgltHlsXml8APo816vbZV3c29stbkyxjHFFAiUrGpXTOlQWJoKzCb2p9IbLp9pq23nZiU+jnI2asCS03/SWsubi0OBVC7jdHV3VZs92lucpA+9yHKdJXMTFBG8tMDkbfLOh6GeRbuhU83OTM8i244uqiJGkIW2PT3XbZOOK2WkrxN3dbr7j6tQX+HJcXV4HcRdKNK9HFDw0TUoX5fw+Ugq/sv0IcLA/01dT7TfA8KYbxt4hsxkGXm5OQs3yoIzHr2Iz5dFeBr8q9jFGnrE/kyQIHgMERILO1f+3J4B87RjKYgq7kmbTZGJTd/Imjnndd39d67m80G763PCLXGIz5qsHJF3eLymDaKOxaFzQipdQ9tbE0nSaWSKVlNUMV0NxZeIOzc3mLddmegU5qUCdIDbhYe0qdK3bgMstnMGRzBOxwueTiGepLRQ6JigcbLHC9avXIwvtfhepLNwe61FfFlKR0We3X1sghbXAWhoAKZ4IpmJNpJ84zB0mrDkBuosY="
+  api_key: $GH_TOKEN
   file_glob: true
   file: $CRATE_NAME-$TRAVIS_TAG-$TARGET.*
   on:
