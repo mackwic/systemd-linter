@@ -244,7 +244,7 @@ mod parse_unit {
         assert!(res.is_err())
     }
 
-    // TODO 
+    // TODO
     // - line numbers
     // - parse error => error messages
     /*
