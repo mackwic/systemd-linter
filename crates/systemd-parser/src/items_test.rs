@@ -24,7 +24,7 @@ mod unit_directive {
                 Directive("Description", "plop"),
             ];
             let res = UnitDirective::item_list_to_unit_directive_list(&input);
-            let expected = UnitDirective::new("Unit", "Description", "plop");
+            let expected = UnitDirective::new("Unit".into(), "Description".into(), "plop".into());
 
             assert!(res.is_ok());
             assert_eq!(Some(&expected), res.unwrap().get(0))
@@ -38,7 +38,7 @@ mod unit_directive {
                 Directive("Wants", "boot.target"),
             ];
             let res = UnitDirective::item_list_to_unit_directive_list(&input);
-            let expected = UnitDirective::new("Unit", "Wants", "boot.target");
+            let expected = UnitDirective::new("Unit".into(), "Wants".into(), "boot.target".into());
 
             assert!(res.is_ok());
             assert_eq!(Some(&expected), res.unwrap().get(1))
@@ -53,7 +53,7 @@ mod unit_directive {
                 Directive("ExecStart", "/usr/bin/true"),
             ];
             let res = UnitDirective::item_list_to_unit_directive_list(&input);
-            let expected = UnitDirective::new("Service", "ExecStart", "/usr/bin/true");
+            let expected = UnitDirective::new("Service".into(), "ExecStart".into(), "/usr/bin/true".into());
 
             assert!(res.is_ok());
             assert_eq!(Some(&expected), res.unwrap().get(1))
@@ -91,16 +91,16 @@ mod unit_directive {
             let res = UnitDirective::item_list_to_unit_directive_list(&input);
 
             let expected = vec![
-                UnitDirective::new("Unit", "Description", "Some HTTP server"),
-                UnitDirective::new("Unit", "After", "remote-fs.target sqldb.service memcached.service"),
-                UnitDirective::new("Unit", "Requires", ""),
-                UnitDirective::new("Unit", "Requires","sqldb.service memcached.service"),
-                UnitDirective::new("Unit", "AssertPathExists","/srv/www"),
-                UnitDirective::new("Service", "Type", "notify"),
-                UnitDirective::new("Service", "ExecStart", "/usr/sbin/some-fancy-httpd-server"),
-                UnitDirective::new("Service", "Nice", "0"),
-                UnitDirective::new("Service", "PrivateTmp", "yes"),
-                UnitDirective::new("Install", "WantedBy", "multi-user.target"),
+                UnitDirective::new("Unit".into(), "Description".into(), "Some HTTP server".into()),
+                UnitDirective::new("Unit".into(), "After".into(), "remote-fs.target sqldb.service memcached.service".into()),
+                UnitDirective::new("Unit".into(), "Requires".into(), ""),
+                UnitDirective::new("Unit".into(), "Requires".into(),"sqldb.service memcached.service".into()),
+                UnitDirective::new("Unit".into(), "AssertPathExists".into(),"/srv/www".into()),
+                UnitDirective::new("Service".into(), "Type".into(), "notify".into()),
+                UnitDirective::new("Service".into(), "ExecStart".into(), "/usr/sbin/some-fancy-httpd-server".into()),
+                UnitDirective::new("Service".into(), "Nice".into(), "0".into()),
+                UnitDirective::new("Service".into(), "PrivateTmp".into(), "yes".into()),
+                UnitDirective::new("Install".into(), "WantedBy".into(), "multi-user.target".into()),
             ];
 
             assert_eq!(expected, res.unwrap());
@@ -215,9 +215,9 @@ mod systemd_unit {
             let unit = SystemdUnit::new(&input).unwrap();
             let directive = UnitDirective::new("Service", "ExecStartPre", "/usr/bin/true");
             let expected = Many(vec![
-                directive,
-                directive,
-                directive,
+                directive.clone(),
+                directive.clone(),
+                directive.clone(),
             ]);
             // act
             let res = unit.lookup_by_key("ExecStartPre");

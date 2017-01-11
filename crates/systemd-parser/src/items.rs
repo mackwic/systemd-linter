@@ -8,24 +8,24 @@ pub enum SystemdItem<'a> {
     Directive(&'a str, &'a str),
 }
 
-#[derive(PartialEq, Eq, Copy, Clone, Debug)]
-pub struct UnitDirective<'a> {
-    key: &'a str,
-    value: &'a str,
-    category: &'a str,
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct UnitDirective {
+    key: String,
+    value: String,
+    category: String,
 }
 
-impl<'a> UnitDirective<'a> {
-    pub fn new<'b>(category: &'b str, key: &'b str, value: &'b str) -> UnitDirective<'b> {
+impl UnitDirective {
+    pub fn new(category: &str, key: &str, value: &str) -> UnitDirective {
         UnitDirective {
-            category: category,
-            value: value,
-            key: key,
+            category: String::from(category),
+            value: String::from(value),
+            key: String::from(key),
         }
     }
 
-    pub fn item_list_to_unit_directive_list(unit_items: &'a Vec<SystemdItem<'a>>)
-        -> Result<Vec<UnitDirective<'a>>, ()> {
+    pub fn item_list_to_unit_directive_list(unit_items: &Vec<SystemdItem>)
+        -> Result<Vec<UnitDirective>, ()> {
 
         use self::SystemdItem::*;
 
@@ -57,25 +57,25 @@ impl<'a> UnitDirective<'a> {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
-pub struct SystemdUnit<'a> {
-    directives: HashMap<&'a str, DirectiveEntry<'a>>
+pub struct SystemdUnit {
+    directives: HashMap<String, DirectiveEntry>
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
-pub enum DirectiveEntry<'a> {
-    Solo(UnitDirective<'a>),
-    Many(Vec<UnitDirective<'a>>)
+pub enum DirectiveEntry {
+    Solo(UnitDirective),
+    Many(Vec<UnitDirective>)
 }
 
-impl<'a> SystemdUnit<'a> {
+impl SystemdUnit {
 
-    pub fn new(unit_items: &'a Vec<SystemdItem<'a>>) -> Result<SystemdUnit<'a>, ()> {
+    pub fn new(unit_items: &Vec<SystemdItem>) -> Result<SystemdUnit, ()> {
 
         let directives = try!(
             UnitDirective::item_list_to_unit_directive_list(&unit_items)
         );
 
-        let mut directives_hash = try!(
+        let directives_hash = try!(
             SystemdUnit::hash_from_directives(directives)
         );
 
@@ -85,7 +85,7 @@ impl<'a> SystemdUnit<'a> {
         Ok(res)
     }
 
-    fn hash_from_directives(directives: Vec<UnitDirective>) -> Result<HashMap<&str, DirectiveEntry>, ()> {
+    fn hash_from_directives(directives: Vec<UnitDirective>) -> Result<HashMap<String, DirectiveEntry>, ()> {
 
         use self::DirectiveEntry::*;
         use std::collections::hash_map::Entry;
@@ -93,25 +93,20 @@ impl<'a> SystemdUnit<'a> {
         let mut directives_hash = HashMap::new();
 
         for directive in directives {
-            match directives_hash.entry(directive.key) {
+            match directives_hash.entry(directive.key.clone()) {
                 // first entry is a Solo
-                Entry::Vacant(mut entry) => { entry.insert(Solo(directive)); },
-                Entry::Occupied(mut entry) => {
-                    let mut entry = entry.get_mut();
-                    match *entry {
-                // 2nd entry is a conversion from Solo to Many
-                        Solo(first_dir) => {
-                            let dirs = vec!(first_dir, directive);
-                            try!(SystemdUnit::validate_many(&dirs));
-                            *entry = Many(dirs);
-                        }
-                // 3rd+ entry is an append to vec in Many(vec)
-                        Many(ref mut dirs) => {
-                            dirs.push(directive);
-                            try!(SystemdUnit::validate_many(dirs));
-                        },
+                Entry::Vacant(entry) => { entry.insert(Solo(directive)); },
+                Entry::Occupied(mut entry_container) => {
+                    let mut vecs = vec!();
+                    // FIXME do not clone :(
+                    match *entry_container.get() {
+                        Solo(ref first_dir) => { vecs.push(first_dir.clone()); },
+                        Many(ref dirs) => { vecs = dirs.clone(); }
                     }
-                }
+                    vecs.push(directive);
+                    try!(SystemdUnit::validate_many(&vecs));
+                    entry_container.insert(Many(vecs));
+                },
             }
         }
 
@@ -140,9 +135,9 @@ impl<'a> SystemdUnit<'a> {
 
         self.directives
             .values()
-            .filter(|directive| match **directive { 
-				Solo(dir) => dir.category == category,
-				Many(ref dirs) => category == dirs.get(0).expect("dirs.len() > 0").category,
+            .filter(|directive| match *directive { 
+				&Solo(ref dir) => dir.category == category,
+				&Many(ref dirs) => category == dirs.get(0).expect("dirs.len() > 0").category,
 			})
             .collect()
     }
