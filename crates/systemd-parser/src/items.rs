@@ -141,5 +141,20 @@ impl SystemdUnit {
 			})
             .collect()
     }
+
+    pub fn has_key(&self, key: &str) -> bool {
+        self.directives.contains_key(key)
+    }
+
+    pub fn has_category(&self, category: &str) -> bool {
+		use self::DirectiveEntry::*;
+
+        self.directives
+            .values()
+            .any(|directive| match *directive {
+                Solo(ref dir) => dir.category == category,
+                Many(ref dirs) => category == dirs.get(0).expect("dirs.len() > 0").category,
+            })
+    }
 }
 

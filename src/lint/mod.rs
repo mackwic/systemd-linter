@@ -1,10 +1,5 @@
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
-pub enum LintCode {
-    LintMissingDescription = 20_000,
-}
-
-#[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum LintSeverity {
     Ignore,
     Lint,
@@ -20,11 +15,19 @@ pub struct LintResult {
     // TODO: add line + column
 }
 
-use systemd_parser::items::SystemdUnit;
+#[derive(PartialEq, Eq, Copy, Clone, Debug)]
+pub enum LintCode {
+    LintMissingDescription = 20_000,
+    WarnServiceTypeShouldAlwaysBeExplicit = 30_000,
+}
 
 mod lint_missing_description;
+mod service_type_always_explicit;
 
-pub const ALL_LINTS : [fn(&SystemdUnit) -> Result<(), LintResult>; 1] = [
-    lint_missing_description::lint
+use systemd_parser::items::SystemdUnit;
+
+pub const ALL_LINTS : [fn(&SystemdUnit) -> Result<(), LintResult>; 2] = [
+    lint_missing_description::lint,
+    service_type_always_explicit::lint,
 ];
 
