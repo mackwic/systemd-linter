@@ -23,17 +23,17 @@ named!(pub take_whole_line<&str, &str>, take_while_s!(c_always_true));
 
 named!(
     pub parse_comment<&str, SystemdItem>,
-    do_parse!(
+    complete!(do_parse!(
         eat_separator!(" \t")      >>
         tag_s!("#")                >>
         comment: take_whole_line   >>
         (SystemdItem::Comment(comment.trim()))
-    )
+    ))
 );
 
 named!(
     pub parse_category<&str, SystemdItem>,
-    do_parse!(
+    complete!(do_parse!(
         eat_separator!(" \t")   >>
         tag!("[")               >>
         eat_separator!(" ")     >>
@@ -41,12 +41,12 @@ named!(
         eat_separator!(" ")     >>
         tag!("]")               >>
         (SystemdItem::Category(category))
-    )
+    ))
 );
 
 named!(
     pub parse_directive<&str, SystemdItem>,
-    do_parse!(
+    complete!(do_parse!(
         eat_separator!(" \t")   >>
         key: take_while1_s!(c_is_key_element) >>
         eat_separator!(" ")     >>
@@ -54,12 +54,12 @@ named!(
         eat_separator!(" ")     >>
         value: take_while1_s!(c_is_value_element) >>
         (SystemdItem::Directive(key, value))
-    )
+    ))
 );
 
 named!(
     pub parse_line<&str, SystemdItem>,
-    alt!(parse_category | parse_comment | parse_directive)
+    alt_complete!(parse_category | parse_comment | parse_directive)
 );
 
 pub fn parse_unit(input: &str) -> Result<Vec<SystemdItem>, Vec<(IError<&str>, u32)>> {
