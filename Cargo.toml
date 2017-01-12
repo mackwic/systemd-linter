@@ -8,4 +8,5 @@ license = "MPL-2.0"
 [dependencies]
 systemd-parser = { version = "0.1.0", path = "./crates/systemd-parser" }
 clap = "^2.20"
+colored = "^1.0"
 

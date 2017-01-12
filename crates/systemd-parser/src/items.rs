@@ -31,12 +31,12 @@ impl UnitDirective {
     }
 
     pub fn item_list_to_unit_directive_list(unit_items: &Vec<SystemdItem>)
-        -> Result<Vec<UnitDirective>, ()> {
+        -> Result<Vec<UnitDirective>, String> {
 
         use self::SystemdItem::*;
 
         if unit_items.len() < 1 {
-            return Err(()) // TODO: error message
+            return Err(format!("No directives in the file"))
         }
 
         let mut cat = try!(UnitDirective::get_first_category(unit_items));
@@ -53,11 +53,11 @@ impl UnitDirective {
         Ok(res)
     }
 
-    fn get_first_category<'b>(unit_items: &'b Vec<SystemdItem<'b>>) -> Result<&'b str, ()> {
+    fn get_first_category<'b>(unit_items: &'b Vec<SystemdItem<'b>>) -> Result<&'b str, String> {
         if let Some(&SystemdItem::Category(first_cat)) = unit_items.get(0) {
             Ok(first_cat)
         } else {
-            return Err(()) // TODO: error message
+            return Err(format!("The first non-comment line must be a [Category]"))
         }
     }
 }
@@ -75,7 +75,7 @@ pub enum DirectiveEntry {
 
 impl SystemdUnit {
 
-    pub fn new(unit_items: &Vec<SystemdItem>) -> Result<SystemdUnit, ()> {
+    pub fn new(unit_items: &Vec<SystemdItem>) -> Result<SystemdUnit, String> {
 
         let directives = try!(
             UnitDirective::item_list_to_unit_directive_list(&unit_items)
@@ -91,7 +91,7 @@ impl SystemdUnit {
         Ok(res)
     }
 
-    fn hash_from_directives(directives: Vec<UnitDirective>) -> Result<HashMap<String, DirectiveEntry>, ()> {
+    fn hash_from_directives(directives: Vec<UnitDirective>) -> Result<HashMap<String, DirectiveEntry>, String> {
 
         use self::DirectiveEntry::*;
         use std::collections::hash_map::Entry;
@@ -119,7 +119,7 @@ impl SystemdUnit {
         Ok(directives_hash)
     }
 
-    fn validate_many(dirs: &Vec<UnitDirective>) -> Result<(), ()> {
+    fn validate_many(dirs: &Vec<UnitDirective>) -> Result<(), String> {
         // contract: invariant
         assert!(dirs.len() >= 2);
 
@@ -128,7 +128,10 @@ impl SystemdUnit {
         if first.category == last.category {
             Ok(())
         } else {
-            Err(()) // TODO: error message
+            Err(format!(
+                    "The same directive is repeated many times in different categories: {:?}, {:?}",
+                    first, last
+            ))
         }
     }
 

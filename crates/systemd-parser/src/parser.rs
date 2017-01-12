@@ -62,17 +62,23 @@ named!(
     alt!(parse_category | parse_comment | parse_directive)
 );
 
-pub fn parse_unit(input: &str) -> Result<Vec<SystemdItem>, Vec<IError<&str>>> {
+pub fn parse_unit(input: &str) -> Result<Vec<SystemdItem>, Vec<(IError<&str>, u32)>> {
     let mut errors = vec!();
     let mut oks = vec!();
+    let mut line_index = 0;
     let mixed_res = input.lines()
-                         .filter(|line| !line.trim().is_empty()) // skip white lines
-                         .map(parse_line);
+                         .map(|l| {
+                             let res = (l, line_index);
+                             line_index += 1;
+                             res
+                         })
+                         .filter(|&(line, _)| !line.trim().is_empty()) // skip white lines
+                         .map(|(line, idx)| (parse_line(line), idx));
 
-    for res in mixed_res {
+    for (res, line_idx) in mixed_res {
         match res.to_full_result() {
             Ok(ok_res) => oks.push(ok_res),
-            Err(err_res) => errors.push(err_res)
+            Err(err_res) => errors.push((err_res, line_idx))
         }
     }
 
