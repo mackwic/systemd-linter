@@ -3,7 +3,6 @@ use items::SystemdItem;
 use nom::*;
 
 fn c_always_true(_c: char) -> bool { true }
-fn c_is_alphabetic(c: char) -> bool { c.is_alphabetic() }
 fn c_is_category_element(c: char) -> bool {
     c.is_alphabetic() || c == '-'
 }
@@ -72,11 +71,8 @@ named!(
 
 pub fn parse_unit(input: &str) -> Result<Vec<SystemdItem>, Vec<(IError<&str>, u32)>> {
 
-    use std::mem;
-
     let mut errors = vec!();
     let mut oks = vec!();
-    let mut line_index = 0;
 
     let mixed_res = input.lines()
                          .filter(|line| !line.trim().is_empty()) // skip white lines
@@ -119,7 +115,7 @@ fn count_lines_by_pattern(pattern: &str, haystack: &str) -> u32 {
     let mut idx = 0;
     haystack.lines()
             .map(|line| { idx += 1; (line, idx) })
-            .find(|&(line, line_idx)| line.contains(pattern))
+            .find(|&(line, _)| line.contains(pattern))
             .expect("it has been parsed once, it must be in the input somewhere").1
 
 }

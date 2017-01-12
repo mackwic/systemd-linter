@@ -209,7 +209,7 @@ mod parse_unit {
 
     #[test]
     fn it_returns_a_vec_of_parsed_lines() {
-        let mut input = "[Unit]
+        let input = "[Unit]
         Description=This is a dummy unit file
         [Service]
         ExecStart=/usr/bin/true
@@ -223,7 +223,7 @@ mod parse_unit {
 
     #[test]
     fn it_skip_empty_lines() {
-        let mut input = "
+        let input = "
 [Unit]";
         let res = parse_unit(&input);
         assert_eq!(
@@ -234,7 +234,7 @@ mod parse_unit {
 
     #[test]
     fn it_trim_whitespaces_at_beginning_and_end_of_line() {
-        let mut input = "\n     \t   [Unit]  ";
+        let input = "\n     \t   [Unit]  ";
         let res = parse_unit(&input);
         assert_eq!(
             &SystemdItem::Category("Unit"),
@@ -244,7 +244,7 @@ mod parse_unit {
 
     #[test]
     fn it_works_with_the_dummy() {
-        let mut input = "[Unit]
+        let input = "[Unit]
         Description=This is a dummy unit file
         [Service]
         ExecStart=/usr/bin/true
@@ -262,14 +262,14 @@ mod parse_unit {
 
     #[test]
     fn it_returns_an_error_in_case_of_parse_error() {
-        let mut input = "[Unit]\nplop";
+        let input = "[Unit]\nplop";
         let res = parse_unit(&input);
         assert!(res.is_err())
     }
 
     #[test]
     fn it_keep_line_numbers_in_errors() {
-        let mut input = "[Unit]\nplop";
+        let input = "[Unit]\nplop";
         let res = parse_unit(&input);
         assert_eq!(
             2,
@@ -279,7 +279,7 @@ mod parse_unit {
 
     #[test]
     fn it_keep_line_numbers_in_errors2() {
-        let mut input = "[Unit]\nplop\nPlop=42\n[Nice things]";
+        let input = "[Unit]\nplop\nPlop=42\n[Nice things]";
         let res = parse_unit(&input);
         assert_eq!(
             4,
