@@ -15,7 +15,7 @@ impl From<(String, u32)> for ParseErrorInternal {
 
 impl fmt::Display for ParseErrorInternal {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "line {}: {}", (self.1 + 1), self.0)
+        writeln!(f, "line {}: {}", self.1, self.0)
     }
 }
 

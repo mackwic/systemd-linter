@@ -186,19 +186,35 @@ mod parse_line {
     }
 }
 
+mod eat_line_separators {
+    pub use super::*;
+
+    #[test]
+    fn it_should_exists() {
+        let input = "\n\n\n\r\n";
+        let res = eat_line_separators(input);
+        assert!(res.is_done())
+    }
+
+    #[test]
+    fn it_should_not_eat_escaped_separators() {
+        let input = "\\\n";
+        let res = eat_line_separators(input);
+        assert!(res.is_err())
+    }
+}
+
 mod parse_unit {
     pub use super::*;
 
-    const DUMMY_UNIT_STR : &'static str = "[Unit]
+    #[test]
+    fn it_returns_a_vec_of_parsed_lines() {
+        let mut input = "[Unit]
         Description=This is a dummy unit file
         [Service]
         ExecStart=/usr/bin/true
-    ";
-
-    #[test]
-    fn it_returns_a_vec_of_parsed_lines() {
-        let input = DUMMY_UNIT_STR;
-        let res = parse_unit(input);
+        ";
+        let res = parse_unit(&input);
         assert_eq!(
             &SystemdItem::Category("Unit"),
             res.unwrap().get(0).unwrap()
@@ -207,9 +223,9 @@ mod parse_unit {
 
     #[test]
     fn it_skip_empty_lines() {
-        let input = "
+        let mut input = "
 [Unit]";
-        let res = parse_unit(input);
+        let res = parse_unit(&input);
         assert_eq!(
             &SystemdItem::Category("Unit"),
             res.unwrap().get(0).unwrap()
@@ -218,8 +234,8 @@ mod parse_unit {
 
     #[test]
     fn it_trim_whitespaces_at_beginning_and_end_of_line() {
-        let input = "\n     \t   [Unit]  ";
-        let res = parse_unit(input);
+        let mut input = "\n     \t   [Unit]  ";
+        let res = parse_unit(&input);
         assert_eq!(
             &SystemdItem::Category("Unit"),
             res.unwrap().get(0).unwrap()
@@ -228,6 +244,11 @@ mod parse_unit {
 
     #[test]
     fn it_works_with_the_dummy() {
+        let mut input = "[Unit]
+        Description=This is a dummy unit file
+        [Service]
+        ExecStart=/usr/bin/true
+        ";
         let dummy_unit_parsed = vec![
             SystemdItem::Category("Unit"),
             SystemdItem::Directive("Description", "This is a dummy unit file"),
@@ -235,33 +256,33 @@ mod parse_unit {
             SystemdItem::Directive("ExecStart", "/usr/bin/true")
         ];
 
-        let res = parse_unit(DUMMY_UNIT_STR);
+        let res = parse_unit(&input);
         assert_eq!(dummy_unit_parsed, res.unwrap())
     }
 
     #[test]
     fn it_returns_an_error_in_case_of_parse_error() {
-        let input = "[Unit]\nplop";
-        let res = parse_unit(input);
+        let mut input = "[Unit]\nplop";
+        let res = parse_unit(&input);
         assert!(res.is_err())
     }
 
     #[test]
     fn it_keep_line_numbers_in_errors() {
-        let input = "[Unit]\nplop";
-        let res = parse_unit(input);
+        let mut input = "[Unit]\nplop";
+        let res = parse_unit(&input);
         assert_eq!(
-            1,
+            2,
             res.unwrap_err().get(0).unwrap().1
         )
     }
 
     #[test]
     fn it_keep_line_numbers_in_errors2() {
-        let input = "[Unit]\nplop\nPlop=42\n[Nice things]";
-        let res = parse_unit(input);
+        let mut input = "[Unit]\nplop\nPlop=42\n[Nice things]";
+        let res = parse_unit(&input);
         assert_eq!(
-            3,
+            4,
             res.unwrap_err().get(1).unwrap().1
         )
     }

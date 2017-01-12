@@ -4,6 +4,9 @@ use nom::*;
 
 fn c_always_true(_c: char) -> bool { true }
 fn c_is_alphabetic(c: char) -> bool { c.is_alphabetic() }
+fn c_is_category_element(c: char) -> bool {
+    c.is_alphabetic() || c == '-'
+}
 fn c_is_value_element(c: char) -> bool {
     match c {
         ' '|'/'|'-'|'_'|'.'|'@'|'+'|':'|'"'|'|'|'\'' => true,
@@ -37,7 +40,7 @@ named!(
         eat_separator!(" \t")   >>
         tag!("[")               >>
         eat_separator!(" ")     >>
-        category: take_while1_s!(c_is_alphabetic) >>
+        category: take_while1_s!(c_is_category_element) >>
         eat_separator!(" ")     >>
         tag!("]")               >>
         (SystemdItem::Category(category))
@@ -62,31 +65,62 @@ named!(
     alt_complete!(parse_category | parse_comment | parse_directive)
 );
 
+named!(
+    pub eat_line_separators<&str, &str>,
+    is_a_s!("\n\r")
+);
+
 pub fn parse_unit(input: &str) -> Result<Vec<SystemdItem>, Vec<(IError<&str>, u32)>> {
+
+    use std::mem;
+
     let mut errors = vec!();
     let mut oks = vec!();
     let mut line_index = 0;
-    let mixed_res = input.lines()
-                         .map(|l| {
-                             let res = (l, line_index);
-                             line_index += 1;
-                             res
-                         })
-                         .filter(|&(line, _)| !line.trim().is_empty()) // skip white lines
-                         .map(|(line, idx)| (parse_line(line), idx));
 
-    for (res, line_idx) in mixed_res {
+    let mixed_res = input.lines()
+                         .filter(|line| !line.trim().is_empty()) // skip white lines
+                         .map(|line| parse_line(line));
+
+    for res in mixed_res {
         match res.to_full_result() {
             Ok(ok_res) => oks.push(ok_res),
-            Err(err_res) => errors.push((err_res, line_idx))
+            Err(err_res) => errors.push(err_res),
         }
     }
 
     if errors.len() > 0 {
-        Err(errors)
+        Err(enhance_with_line_numbers(errors, input))
     } else {
         Ok(oks)
     }
 }
 
+fn enhance_with_line_numbers<'a>(errors: Vec<IError<&'a str>>, input: &str)
+    -> Vec<(IError<&'a str>, u32)> {
+
+    use nom::IError::*;
+    use nom::ErrorKind::*;
+    use nom::Err::*;
+
+    errors.iter()
+          .map(|error| {
+              if let &Error(Position(Alt, pattern)) = error {
+                  let line_number = count_lines_by_pattern(pattern, input);
+                  (error.clone(), line_number)
+              } else {
+                  (error.clone(), 0) // FIXME: is it possible ?
+              }
+          }).collect()
+}
+
+fn count_lines_by_pattern(pattern: &str, haystack: &str) -> u32 {
+
+    let mut idx = 0;
+    haystack.lines()
+            .map(|line| { idx += 1; (line, idx) })
+            .find(|&(line, line_idx)| line.contains(pattern))
+            .expect("it has been parsed once, it must be in the input somewhere").1
+
+}
 
