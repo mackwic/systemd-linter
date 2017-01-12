@@ -2,7 +2,6 @@
 extern crate itertools;
 #[macro_use]
 extern crate nom;
-extern crate memchr;
 #[macro_use]
 extern crate quick_error;
 
