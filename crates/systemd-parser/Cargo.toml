@@ -1,7 +1,7 @@
 [package]
 name = "systemd-parser"
 description = "A nom parser for systemd unit files"
-version = "0.1.0"
+version = "0.1.2"
 authors = ["Thomas Wickham <twickham@octo.com>"]
 license = "MPL-2.0"
 
