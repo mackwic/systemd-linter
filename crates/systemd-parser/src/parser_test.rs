@@ -248,7 +248,6 @@ mod parse_unit {
 
     #[test]
     fn it_keep_line_numbers_in_errors() {
-        use nom::{IError, Err, ErrorKind};
         let input = "[Unit]\nplop";
         let res = parse_unit(input);
         assert_eq!(
@@ -259,7 +258,6 @@ mod parse_unit {
 
     #[test]
     fn it_keep_line_numbers_in_errors2() {
-        use nom::{IError, Err, ErrorKind};
         let input = "[Unit]\nplop\nPlop=42\n[Nice things]";
         let res = parse_unit(input);
         assert_eq!(

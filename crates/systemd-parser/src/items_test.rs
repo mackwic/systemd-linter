@@ -262,4 +262,50 @@ mod systemd_unit {
             assert_eq!(expected, res);
         }
     }
+
+    mod categories {
+        pub use super::*;
+
+        #[test]
+        fn it_should_return_categories() {
+            // arrange
+            let input = vec![
+                Category("Unit0"),
+                Directive("Description0", "A dummy unit file"),
+                Category("Unit1"),
+                Directive("Description1", "A dummy unit file"),
+            ];
+            let unit = SystemdUnit::new(&input).unwrap();
+            let expected : Vec<String> = vec![
+                "Unit0".into(),
+                "Unit1".into(),
+            ];
+            // act
+            let res = unit.categories();
+            // assert
+            assert_eq!(expected, res);
+        }
+
+        #[test]
+        fn it_should_skip_doubles_and_return_categories_once() {
+            // arrange
+            let input = vec![
+                Category("Unit0"),
+                Directive("Description00", "A dummy unit file"),
+                Directive("Description01", "A dummy unit file"),
+                Category("Unit1"),
+                Directive("Description11", "A dummy unit file"),
+                Directive("Description12", "A dummy unit file"),
+            ];
+            let unit = SystemdUnit::new(&input).unwrap();
+            let expected : Vec<String> = vec![
+                "Unit0".into(),
+                "Unit1".into(),
+            ];
+            // act
+            let res = unit.categories();
+            // assert
+            assert_eq!(expected, res);
+        }
+    }
 }

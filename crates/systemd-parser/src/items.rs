@@ -64,13 +64,24 @@ impl UnitDirective {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct SystemdUnit {
-    directives: HashMap<String, DirectiveEntry>
+    directives: HashMap<String, DirectiveEntry>,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum DirectiveEntry {
     Solo(UnitDirective),
     Many(Vec<UnitDirective>)
+}
+
+impl DirectiveEntry {
+    pub fn category(&self) -> String {
+        use self::DirectiveEntry::*;
+
+        match *self {
+            Solo(ref entry) => entry.category().into(),
+            Many(ref entries) => entries.get(0).expect("len > 1").category().into()
+        }
+    }
 }
 
 impl SystemdUnit {
@@ -100,7 +111,6 @@ impl SystemdUnit {
 
         for directive in directives {
             match directives_hash.entry(directive.key.clone()) {
-                // first entry is a Solo
                 Entry::Vacant(entry) => { entry.insert(Solo(directive)); },
                 Entry::Occupied(mut entry_container) => {
                     let mut vecs = vec!();
@@ -140,14 +150,9 @@ impl SystemdUnit {
     }
 
     pub fn lookup_by_category(&self, category: &str) -> Vec<&DirectiveEntry> {
-		use self::DirectiveEntry::*;
-
         self.directives
             .values()
-            .filter(|directive| match *directive { 
-				&Solo(ref dir) => dir.category == category,
-				&Many(ref dirs) => category == dirs.get(0).expect("dirs.len() > 0").category,
-			})
+            .filter(|directive| directive.category() == category)
             .collect()
     }
 
@@ -156,14 +161,23 @@ impl SystemdUnit {
     }
 
     pub fn has_category(&self, category: &str) -> bool {
-		use self::DirectiveEntry::*;
+        self.directives
+            .values()
+            .any(|directive| directive.category() == category)
+    }
+
+    pub fn keys(&self) -> Vec<&DirectiveEntry> {
+        self.directives.values().collect()
+    }
+
+    pub fn categories(&self) -> Vec<String> {
+        use itertools::Itertools;
 
         self.directives
             .values()
-            .any(|directive| match *directive {
-                Solo(ref dir) => dir.category == category,
-                Many(ref dirs) => category == dirs.get(0).expect("dirs.len() > 0").category,
-            })
+            .unique_by(|entry| entry.category())
+            .map(|entry| entry.category())
+            .sorted()
     }
 }
 
