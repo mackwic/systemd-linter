@@ -1,2 +1,6 @@
 target
 Cargo.lock
+.ruby-version
+check.sh
+coreos/*
+darwin-systemd-linter
