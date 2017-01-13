@@ -1,7 +1,7 @@
 [package]
 name = "systemd-linter"
 description = "A SystemD unit files linter"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Thomas Wickham <twickham@octo.com>"]
 license = "MPL-2.0"
 
