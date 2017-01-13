@@ -1,0 +1,12 @@
+[Unit]
+Description=Modifies /etc/environment for CoreOS
+RequiresMountsFor=/usr/share/oem
+ConditionPathExists=/usr/share/oem/bin/coreos-setup-environment
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/share/oem/bin/coreos-setup-environment /etc/environment
+
+[Install]
+WantedBy=multi-user.target

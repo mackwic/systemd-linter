@@ -9,4 +9,5 @@ license = "MPL-2.0"
 systemd-parser = { version = "^0.1", path = "./crates/systemd-parser" }
 clap = "^2.20"
 colored = "^1.0"
+rustc-serialize = "^0.3"
 

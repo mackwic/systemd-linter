@@ -1,0 +1,18 @@
+[Unit]
+Description=Set fake PV driver version for XenServer
+DefaultDependencies=false
+Requires=proc-xen.mount
+After=proc-xen.mount
+IgnoreOnIsolate=true
+ConditionVirtualization=xen
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+# Only attempt the write if 'attr' exists, it may not.
+ExecStart=/bin/sh -c \
+    'if xenstore exists attr; then xenstore write \
+        attr/PVAddons/MajorVersion 6 \
+        attr/PVAddons/MinorVersion 2 \
+        attr/PVAddons/MicroVersion 0 \
+        data/updated 1; fi'

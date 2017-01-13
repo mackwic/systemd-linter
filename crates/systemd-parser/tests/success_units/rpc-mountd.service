@@ -1,0 +1,11 @@
+[Unit]
+Description=NFS Mount Daemon
+Requires=proc-fs-nfsd.mount
+After=proc-fs-nfsd.mount
+After=network.target
+BindsTo=nfs-server.service
+
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/rpc.mountd $RPCMOUNTDARGS

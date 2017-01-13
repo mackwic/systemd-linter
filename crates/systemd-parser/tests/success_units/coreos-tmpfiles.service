@@ -1,0 +1,9 @@
+[Unit]
+Description=Create missing system files
+DefaultDependencies=no
+Before=sysinit.target systemd-sysusers.service
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/coreos-tmpfiles

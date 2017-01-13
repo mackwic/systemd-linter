@@ -96,6 +96,15 @@ impl DirectiveEntry {
             Many(ref entries) => entries.get(0).expect("len > 1").category().into()
         }
     }
+
+    pub fn key(&self) -> String {
+        use self::DirectiveEntry::*;
+
+        match *self {
+            Solo(ref entry) => entry.key().into(),
+            Many(ref entries) => entries.get(0).expect("len > 1").key().into(),
+        }
+    }
 }
 
 impl SystemdUnit {

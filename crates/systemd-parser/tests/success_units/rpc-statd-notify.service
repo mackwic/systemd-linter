@@ -1,0 +1,15 @@
+[Unit]
+Description=Notify NFS peers of a restart
+Requires=network-online.target
+After=network-online.target nss-lookup.target
+
+# if we run an nfs server, it needs to be running before we
+# tell clients that it has restarted.
+After=nfs-server.service
+
+PartOf=nfs-utils.service
+
+
+[Service]
+Type=forking
+ExecStart=-/usr/sbin/sm-notify $SMNOTIFYARGS

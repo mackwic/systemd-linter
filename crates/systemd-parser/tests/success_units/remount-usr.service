@@ -1,0 +1,13 @@
+# Normally systemd-remount-fs does this but only if /usr is in fstab.
+# Since that is not the case in CoreOS we need this instead.
+
+[Unit]
+Description=Remount /usr File System
+ConditionVirtualization=!container
+ConditionPathIsMountPoint=/usr
+ConditionPathIsReadWrite=!/usr
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/mount -o remount,rw /usr

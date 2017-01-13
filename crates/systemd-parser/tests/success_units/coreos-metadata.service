@@ -1,0 +1,9 @@
+[Unit]
+Description=CoreOS Metadata Agent
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/coreos-metadata --cmdline --attributes=/run/metadata/coreos
+
+[Install]
+RequiredBy=metadata.target

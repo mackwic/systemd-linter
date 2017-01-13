@@ -1,6 +1,7 @@
 
 extern crate clap;
 extern crate colored;
+extern crate rustc_serialize;
 extern crate systemd_parser;
 
 mod lint;

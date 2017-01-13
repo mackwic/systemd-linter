@@ -1,0 +1,14 @@
+[Unit]
+DefaultDependencies=no
+Wants=addon-run@usr-share-oem.service addon-config@usr-share-oem.service
+Before=addon-run@usr-share-oem.service addon-config@usr-share-oem.service
+Conflicts=umount.target
+Before=local-fs.target umount.target ldconfig.service
+ConditionVirtualization=!container
+ConditionPathExists=!/usr/.noupdate
+
+[Mount]
+What=/dev/disk/by-label/OEM
+Where=/usr/share/oem
+Options=nodev,commit=600
+Type=ext4

@@ -1,0 +1,9 @@
+[Unit]
+Description=Extend Filesystems
+ConditionVirtualization=!container
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+ExecStart=/usr/lib/coreos/extend-filesystems
+StandardOutput=journal+console
