@@ -21,10 +21,10 @@ mod unit_directive {
         fn it_should_instantiate_a_unit_directive_from_category_and_directive_items() {
             let input = vec![
                 Category("Unit"),
-                Directive("Description", "plop"),
+                Directive("Description", Some("plop")),
             ];
             let res = UnitDirective::item_list_to_unit_directive_list(&input);
-            let expected = UnitDirective::new("Unit".into(), "Description".into(), "plop".into());
+            let expected = UnitDirective::new("Unit".into(), "Description".into(), Some("plop".into()));
 
             assert!(res.is_ok());
             assert_eq!(Some(&expected), res.unwrap().get(0))
@@ -34,11 +34,11 @@ mod unit_directive {
         fn the_second_directive_should_keep_the_category() {
             let input = vec![
                 Category("Unit"),
-                Directive("Description", "plop"),
-                Directive("Wants", "boot.target"),
+                Directive("Description", Some("plop")),
+                Directive("Wants", Some("boot.target")),
             ];
             let res = UnitDirective::item_list_to_unit_directive_list(&input);
-            let expected = UnitDirective::new("Unit".into(), "Wants".into(), "boot.target".into());
+            let expected = UnitDirective::new("Unit".into(), "Wants".into(), Some("boot.target".into()));
 
             assert!(res.is_ok());
             assert_eq!(Some(&expected), res.unwrap().get(1))
@@ -48,12 +48,12 @@ mod unit_directive {
         fn it_should_change_the_category_if_a_category_item_is_seen() {
             let input = vec![
                 Category("Unit"),
-                Directive("Description", "plop"),
+                Directive("Description", Some("plop")),
                 Category("Service"),
-                Directive("ExecStart", "/usr/bin/true"),
+                Directive("ExecStart", Some("/usr/bin/true")),
             ];
             let res = UnitDirective::item_list_to_unit_directive_list(&input);
-            let expected = UnitDirective::new("Service".into(), "ExecStart".into(), "/usr/bin/true".into());
+            let expected = UnitDirective::new("Service".into(), "ExecStart".into(), Some("/usr/bin/true".into()));
 
             assert!(res.is_ok());
             assert_eq!(Some(&expected), res.unwrap().get(1))
@@ -62,9 +62,9 @@ mod unit_directive {
         #[test]
         fn it_should_err_if_the_first_item_is_not_a_category() {
             let input = vec![
-                Directive("Description", "plop"),
+                Directive("Description", Some("plop")),
                 Category("Service"),
-                Directive("ExecStart", "/usr/bin/true"),
+                Directive("ExecStart", Some("/usr/bin/true")),
             ];
             let res = UnitDirective::item_list_to_unit_directive_list(&input);
 
@@ -75,32 +75,32 @@ mod unit_directive {
         fn it_should_work_with_full_dummy_unit() {
             let input = vec![
                 Category("Unit"),
-                Directive("Description", "Some HTTP server"),
-                Directive("After", "remote-fs.target sqldb.service memcached.service"),
-                Directive("Requires", ""),
-                Directive("Requires","sqldb.service memcached.service"),
-                Directive("AssertPathExists","/srv/www"),
+                Directive("Description", Some("Some HTTP server")),
+                Directive("After", Some("remote-fs.target sqldb.service memcached.service")),
+                Directive("Requires", None),
+                Directive("Requires", Some("sqldb.service memcached.service")),
+                Directive("AssertPathExists", Some("/srv/www")),
                 Category("Service"),
-                Directive("Type", "notify"),
-                Directive("ExecStart", "/usr/sbin/some-fancy-httpd-server"),
-                Directive("Nice", "0"),
-                Directive("PrivateTmp", "yes"),
+                Directive("Type", Some("notify")),
+                Directive("ExecStart", Some("/usr/sbin/some-fancy-httpd-server")),
+                Directive("Nice", Some("0")),
+                Directive("PrivateTmp", Some("yes")),
                 Category("Install"),
-                Directive("WantedBy", "multi-user.target"),
+                Directive("WantedBy", Some("multi-user.target")),
             ];
             let res = UnitDirective::item_list_to_unit_directive_list(&input);
 
             let expected = vec![
-                UnitDirective::new("Unit".into(), "Description".into(), "Some HTTP server".into()),
-                UnitDirective::new("Unit".into(), "After".into(), "remote-fs.target sqldb.service memcached.service".into()),
-                UnitDirective::new("Unit".into(), "Requires".into(), ""),
+                UnitDirective::new("Unit".into(), "Description".into(), Some("Some HTTP server".into())),
+                UnitDirective::new("Unit".into(), "After".into(), Some("remote-fs.target sqldb.service memcached.service".into())),
+                UnitDirective::new("Unit".into(), "Requires".into(), None),
                 UnitDirective::new("Unit".into(), "Requires".into(),"sqldb.service memcached.service".into()),
                 UnitDirective::new("Unit".into(), "AssertPathExists".into(),"/srv/www".into()),
-                UnitDirective::new("Service".into(), "Type".into(), "notify".into()),
-                UnitDirective::new("Service".into(), "ExecStart".into(), "/usr/sbin/some-fancy-httpd-server".into()),
-                UnitDirective::new("Service".into(), "Nice".into(), "0".into()),
-                UnitDirective::new("Service".into(), "PrivateTmp".into(), "yes".into()),
-                UnitDirective::new("Install".into(), "WantedBy".into(), "multi-user.target".into()),
+                UnitDirective::new("Service".into(), "Type".into(), Some("notify".into())),
+                UnitDirective::new("Service".into(), "ExecStart".into(), Some("/usr/sbin/some-fancy-httpd-server".into())),
+                UnitDirective::new("Service".into(), "Nice".into(), Some("0".into())),
+                UnitDirective::new("Service".into(), "PrivateTmp".into(), Some("yes".into())),
+                UnitDirective::new("Install".into(), "WantedBy".into(), Some("multi-user.target".into())),
             ];
 
             assert_eq!(expected, res.unwrap());
@@ -118,7 +118,7 @@ mod systemd_unit {
         fn it_should_instantiate() {
             let input = vec![
                 Category("Unit"),
-                Directive("Description", "A dummy unit file"),
+                Directive("Description", Some("A dummy unit file")),
             ];
 
             let res = SystemdUnit::new(&input);
@@ -129,7 +129,7 @@ mod systemd_unit {
         #[test]
         fn it_should_err_when_not_starting_with_a_category() {
             let input = vec![
-                Directive("Description", "A dummy unit file"),
+                Directive("Description", Some("A dummy unit file")),
             ];
 
             let res = SystemdUnit::new(&input);
@@ -142,9 +142,9 @@ mod systemd_unit {
             // arrange
             let input = vec![
                 Category("Service"),
-                Directive("ExecStartPre", "/usr/bin/true"),
+                Directive("ExecStartPre", Some("/usr/bin/true")),
                 Category("Install"),
-                Directive("ExecStartPre", "/usr/bin/true"),
+                Directive("ExecStartPre", Some("/usr/bin/true")),
             ];
             // act
             let res = SystemdUnit::new(&input);
@@ -157,10 +157,10 @@ mod systemd_unit {
             // arrange
             let input = vec![
                 Category("Service"),
-                Directive("ExecStartPre", "/usr/bin/true"),
-                Directive("ExecStartPre", "/usr/bin/true"),
+                Directive("ExecStartPre", Some("/usr/bin/true")),
+                Directive("ExecStartPre", Some("/usr/bin/true")),
                 Category("Install"),
-                Directive("ExecStartPre", "/usr/bin/true"),
+                Directive("ExecStartPre", Some("/usr/bin/true")),
             ];
             // act
             let res = SystemdUnit::new(&input);
@@ -177,10 +177,10 @@ mod systemd_unit {
             // arrange
             let input = vec![
                 Category("Unit"),
-                Directive("Description", "A dummy unit file"),
+                Directive("Description", Some("A dummy unit file")),
             ];
             let unit = SystemdUnit::new(&input).unwrap();
-            let directive = Solo(UnitDirective::new("Unit", "Description", "A dummy unit file"));
+            let directive = Solo(UnitDirective::new("Unit", "Description", Some("A dummy unit file")));
             let expected = Some(&directive);
             // act
             let res = unit.lookup_by_key("Description");
@@ -193,7 +193,7 @@ mod systemd_unit {
             // arrange
             let input = vec![
                 Category("Service"),
-                Directive("ExecStartPre", "/usr/bin/true"),
+                Directive("ExecStartPre", Some("/usr/bin/true")),
             ];
             let unit = SystemdUnit::new(&input).unwrap();
             let expected = None;
@@ -208,12 +208,12 @@ mod systemd_unit {
             // arrange
             let input = vec![
                 Category("Service"),
-                Directive("ExecStartPre", "/usr/bin/true"),
-                Directive("ExecStartPre", "/usr/bin/true"),
-                Directive("ExecStartPre", "/usr/bin/true"),
+                Directive("ExecStartPre", Some("/usr/bin/true")),
+                Directive("ExecStartPre", Some("/usr/bin/true")),
+                Directive("ExecStartPre", Some("/usr/bin/true")),
             ];
             let unit = SystemdUnit::new(&input).unwrap();
-            let directive = UnitDirective::new("Service", "ExecStartPre", "/usr/bin/true");
+            let directive = UnitDirective::new("Service", "ExecStartPre", Some("/usr/bin/true"));
             let expected = Many(vec![
                 directive.clone(),
                 directive.clone(),
@@ -234,10 +234,10 @@ mod systemd_unit {
             // arrange
             let input = vec![
                 Category("Unit"),
-                Directive("Description", "A dummy unit file"),
+                Directive("Description", Some("A dummy unit file")),
             ];
             let unit = SystemdUnit::new(&input).unwrap();
-            let directive = Solo(UnitDirective::new("Unit", "Description", "A dummy unit file"));
+            let directive = Solo(UnitDirective::new("Unit", "Description", Some("A dummy unit file")));
             let expected = vec![
                 &directive
             ];
@@ -252,7 +252,7 @@ mod systemd_unit {
             // arrange
             let input = vec![
                 Category("Unit"),
-                Directive("Description", "A dummy unit file"),
+                Directive("Description", Some("A dummy unit file")),
             ];
             let unit = SystemdUnit::new(&input).unwrap();
             let expected : Vec<&DirectiveEntry> = vec![];
@@ -271,9 +271,9 @@ mod systemd_unit {
             // arrange
             let input = vec![
                 Category("Unit0"),
-                Directive("Description0", "A dummy unit file"),
+                Directive("Description0", Some("A dummy unit file")),
                 Category("Unit1"),
-                Directive("Description1", "A dummy unit file"),
+                Directive("Description1", Some("A dummy unit file")),
             ];
             let unit = SystemdUnit::new(&input).unwrap();
             let expected : Vec<String> = vec![
@@ -291,11 +291,11 @@ mod systemd_unit {
             // arrange
             let input = vec![
                 Category("Unit0"),
-                Directive("Description00", "A dummy unit file"),
-                Directive("Description01", "A dummy unit file"),
+                Directive("Description00", Some("A dummy unit file")),
+                Directive("Description01", Some("A dummy unit file")),
                 Category("Unit1"),
-                Directive("Description11", "A dummy unit file"),
-                Directive("Description12", "A dummy unit file"),
+                Directive("Description11", Some("A dummy unit file")),
+                Directive("Description12", Some("A dummy unit file")),
             ];
             let unit = SystemdUnit::new(&input).unwrap();
             let expected : Vec<String> = vec![

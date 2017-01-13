@@ -5,15 +5,17 @@ use systemd_parser::items::*;
 
 pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 
-    if let None = unit.lookup_by_key("Description") {
-        return Err(LintResult {
-            severity: LintSeverity::Lint,
-            message: "Consider filling the Description= field",
-            code: LintCode::LintMissingDescription,
-        })
-    }
+    let error = Err(LintResult {
+        severity: LintSeverity::Lint,
+        message: "Consider filling the Description= field",
+        code: LintCode::LintMissingDescription,
+    });
 
-    Ok(())
+    match unit.lookup_by_key("Description") {
+        None => return error,
+        Some(&DirectiveEntry::Solo(ref entry)) if entry.value().is_none() => return error,
+        _ => Ok(())
+    }
 }
 
 #[test]
@@ -33,9 +35,25 @@ fn success_case() {
 }
 
 #[test]
-fn error_case() {
+fn error_case_missing_directive() {
     // arrange
     let input = "
+        [Service]
+        ExecStart=/bin/true
+    ";
+    let unit = systemd_parser::parse_string(input).unwrap();
+    // act
+    let res = lint(&unit);
+    // assert
+    assert!(res.is_err());
+}
+
+#[test]
+fn error_case_missing_value() {
+    // arrange
+    let input = "
+        [Unit]
+        Description=
         [Service]
         ExecStart=/bin/true
     ";

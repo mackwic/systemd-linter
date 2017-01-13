@@ -79,7 +79,7 @@ mod parse_directive {
     fn it_should_consume_the_directive_key_and_value() {
         let input = "ExecStart = 42";
         let res = parse_directive(input);
-        let expected = SystemdItem::Directive("ExecStart", "42");
+        let expected = SystemdItem::Directive("ExecStart", Some("42"));
 
         assert_eq!(expected, res.unwrap().1);
     }
@@ -93,20 +93,12 @@ mod parse_directive {
     }
 
     #[test]
-    fn it_should_reject_the_directive_with_no_value() {
+    fn it_should_accept_directives_with_no_values() {
         let input = "Yo =";
         let res = parse_directive(input);
 
-        assert!(res.is_err());
-    }
-
-    #[test]
-    fn it_should_reject_the_directive_with_invalid_characters() {
-        let inputs = vec!["Yo == 42", "Yo =! 42", "Yo = !42"];
-        for input in inputs {
-            let res = parse_directive(input);
-            assert!(res.is_err(), "expected {} to be rejected", input);
-        }
+        assert!(res.is_done(), "expected {} to be accepted. got: {:?}", input, res);
+        assert_eq!(SystemdItem::Directive("Yo", None), res.unwrap().1)
     }
 
     #[test]
@@ -115,7 +107,7 @@ mod parse_directive {
         let res = parse_directive(input);
         let expected = SystemdItem::Directive(
             "ExecStart",
-            "/usr/sbin/some-fancy-httpd-server -p 3000 -h localhost -l server.log"
+            Some("/usr/sbin/some-fancy-httpd-server -p 3000 -h localhost -l server.log")
         );
 
         assert_eq!(expected, res.unwrap().1);
@@ -180,27 +172,9 @@ mod parse_line {
         let input = "ExecStart=/usr/bin/true";
         let res = parse_line(input);
         assert_eq!(
-            SystemdItem::Directive("ExecStart", "/usr/bin/true"),
+            SystemdItem::Directive("ExecStart", Some("/usr/bin/true")),
             res.unwrap().1
         )
-    }
-}
-
-mod eat_line_separators {
-    pub use super::*;
-
-    #[test]
-    fn it_should_exists() {
-        let input = "\n\n\n\r\n";
-        let res = eat_line_separators(input);
-        assert!(res.is_done())
-    }
-
-    #[test]
-    fn it_should_not_eat_escaped_separators() {
-        let input = "\\\n";
-        let res = eat_line_separators(input);
-        assert!(res.is_err())
     }
 }
 
@@ -251,9 +225,9 @@ mod parse_unit {
         ";
         let dummy_unit_parsed = vec![
             SystemdItem::Category("Unit"),
-            SystemdItem::Directive("Description", "This is a dummy unit file"),
+            SystemdItem::Directive("Description", Some("This is a dummy unit file")),
             SystemdItem::Category("Service"),
-            SystemdItem::Directive("ExecStart", "/usr/bin/true")
+            SystemdItem::Directive("ExecStart", Some("/usr/bin/true"))
         ];
 
         let res = parse_unit(&input);

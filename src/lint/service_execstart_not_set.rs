@@ -7,7 +7,9 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 
     if let Some(&DirectiveEntry::Solo(ref type_entry)) = unit.lookup_by_key("Type") {
 
-        if type_entry.value() != "Simple" {
+        println!("{:?}", type_entry.value());
+
+        if type_entry.value() != Some("Simple") {
             return Ok(())
         }
 

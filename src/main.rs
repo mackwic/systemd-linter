@@ -50,7 +50,7 @@ fn error_and_exit<T>(msg: String) -> T {
     use std::io::Write;
     use std::process::exit;
 
-    write!(stderr(), "{}: {}", "Error".red().bold(), msg.red());
+    writeln!(stderr(), "{}: {}", "Error".red().bold(), msg.red());
     exit(1);
     unreachable!()
 }

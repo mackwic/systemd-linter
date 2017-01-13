@@ -5,27 +5,33 @@ use std::collections::HashMap;
 pub enum SystemdItem<'a> {
     Comment(&'a str),
     Category(&'a str),
-    Directive(&'a str, &'a str),
+    Directive(&'a str, Option<&'a str>),
+}
+
+impl<'a> SystemdItem<'a> {
+    fn is_comment(&self) -> bool { match *self { SystemdItem::Comment(_) => true, _ => false } }
+    fn is_category(&self) -> bool { match *self { SystemdItem::Category(_) => true, _ => false } }
+    fn is_directive(&self) -> bool { match *self { SystemdItem::Directive(_, _) => true, _ => false } }
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct UnitDirective {
     key: String,
-    value: String,
+    value: Option<String>,
     category: String,
 }
 
 impl UnitDirective {
-    pub fn value(&self) -> &str { &self.value }
+    pub fn value(&self) -> Option<&str> { self.value.as_ref().map(|s| &s[..]) }
     pub fn key(&self) -> &str { &self.key }
     pub fn category(&self) -> &str { &self.category }
 }
 
 impl UnitDirective {
-    pub fn new(category: &str, key: &str, value: &str) -> UnitDirective {
+    pub fn new(category: &str, key: &str, value: Option<&str>) -> UnitDirective {
         UnitDirective {
             category: String::from(category),
-            value: String::from(value),
+            value: value.map(String::from),
             key: String::from(key),
         }
     }
@@ -35,7 +41,8 @@ impl UnitDirective {
 
         use self::SystemdItem::*;
 
-        if unit_items.len() < 1 {
+        let directive_count = unit_items.iter().filter(|items| items.is_directive()).count();
+        if directive_count < 1 {
             return Err(format!("No directives in the file"))
         }
 
@@ -54,10 +61,17 @@ impl UnitDirective {
     }
 
     fn get_first_category<'b>(unit_items: &'b Vec<SystemdItem<'b>>) -> Result<&'b str, String> {
-        if let Some(&SystemdItem::Category(first_cat)) = unit_items.get(0) {
+        use self::SystemdItem::*;
+
+        let first_non_comment = unit_items.iter().find(|&item| { match *item {
+            Comment(_) => false,
+            _ => true
+        }});
+
+        if let Some(&SystemdItem::Category(first_cat)) = first_non_comment {
             Ok(first_cat)
         } else {
-            return Err(format!("The first non-comment line must be a [Category]"))
+            return Err(format!("The first non-comment line must be a [Category] (found: {:?})", unit_items.get(0)))
         }
     }
 }

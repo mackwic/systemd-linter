@@ -8,9 +8,8 @@ fn c_is_category_element(c: char) -> bool {
 }
 fn c_is_value_element(c: char) -> bool {
     match c {
-        ' '|'/'|'-'|'_'|'.'|'@'|'+'|':'|'"'|'|'|'\'' => true,
-        c if c.is_alphanumeric() => true,
-        _ => false
+        '\n'|'\r'|'#' => false,
+        _ => true,
     }
 }
 fn c_is_key_element(c: char) -> bool {
@@ -54,19 +53,19 @@ named!(
         eat_separator!(" ")     >>
         tag!("=")               >>
         eat_separator!(" ")     >>
-        value: take_while1_s!(c_is_value_element) >>
-        (SystemdItem::Directive(key, value))
+        value: take_while_s!(c_is_value_element) >>
+        (SystemdItem::Directive(key, (if value.is_empty() { None } else { Some(value) })))
     ))
 );
 
 named!(
     pub parse_line<&str, SystemdItem>,
-    alt_complete!(parse_category | parse_comment | parse_directive)
-);
-
-named!(
-    pub eat_line_separators<&str, &str>,
-    is_a_s!("\n\r")
+    do_parse!(
+        value: alt_complete!(parse_category | parse_comment | parse_directive) >>
+        eat_separator!(" \t") >>
+        eof!()                >>
+        (value)
+    )
 );
 
 pub fn parse_unit(input: &str) -> Result<Vec<SystemdItem>, Vec<(IError<&str>, u32)>> {

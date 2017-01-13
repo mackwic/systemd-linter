@@ -32,11 +32,12 @@ quick_error!(
         ParseError(errors: Vec<ParseErrorInternal>) {
             from()
             description("Failed to parse the unit file")
-            display(error)-> ("{}, errors:\n{}", error.description(), helper_format(errors))
+            display(error) -> ("{}, errors:\n{}", error.description(), helper_format(errors))
         }
         UnitGrammarError(err: String) {
             from()
             description("The unit file doesn't make sense")
+            display(error) -> ("{}: {}", error.description(), err)
         }
     }
 );
