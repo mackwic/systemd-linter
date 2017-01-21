@@ -1,6 +1,5 @@
 
 use lint::*;
-use systemd_parser;
 use systemd_parser::items::*;
 
 static KNOWN_CATEGORIES : &'static [&'static str] = &[
@@ -24,6 +23,9 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 
     Ok(())
 }
+
+#[cfg(test)]
+use systemd_parser;
 
 #[test]
 fn success_case() {

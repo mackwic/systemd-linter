@@ -1,6 +1,5 @@
 
 use lint::*;
-use systemd_parser;
 use systemd_parser::items::*;
 
 pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
@@ -21,6 +20,9 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 
     Ok(())
 }
+
+#[cfg(test)]
+use systemd_parser;
 
 #[test]
 fn success_case() {

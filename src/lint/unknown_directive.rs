@@ -1,7 +1,6 @@
 
 use lint::*;
 use rustc_serialize::json;
-use systemd_parser;
 use systemd_parser::items::*;
 use std::collections::HashMap;
 
@@ -22,6 +21,13 @@ fn open_and_parse_directive_files() -> HashMap<String, DocumentedDirective> {
     res
 }
 
+fn should_be_skipped(unit_entry: &DirectiveEntry) -> bool {
+    let cat = unit_entry.category();
+    let first_chars = &cat[0..2];
+
+    first_chars == "X-"
+}
+
 pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 
     let directives = open_and_parse_directive_files();
@@ -29,7 +35,8 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
     let has_unknown = unit.keys()
                           .into_iter()
                           .find(|unit_entry| {
-                                !directives.contains_key(&unit_entry.key())
+                              !directives.contains_key(&unit_entry.key()) &&
+                                  !should_be_skipped(unit_entry)
                           });
 
     if let Some(unknown_directive) = has_unknown {
@@ -43,6 +50,9 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
     Ok(())
 }
 
+#[cfg(test)]
+use systemd_parser;
+
 #[test]
 fn success_case_in_known_category() {
     // arrange
@@ -55,6 +65,20 @@ fn success_case_in_known_category() {
     let res = lint(&unit);
     // assert
     assert!(res.is_ok())
+}
+
+#[test]
+fn success_case_x_categories_should_be_skipped() {
+    // arrange
+    let input = "
+        [X-Fleet]
+        MachineMetadata=location=chicago
+    ";
+    let unit = systemd_parser::parse_string(input).unwrap();
+    // act
+    let res = lint(&unit);
+    // assert
+    assert!(res.is_ok(), "{:?}", res)
 }
 
 #[test]
