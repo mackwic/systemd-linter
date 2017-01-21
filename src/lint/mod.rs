@@ -1,4 +1,5 @@
 
+#[allow(dead_code)]
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum LintSeverity {
     Ignore,
@@ -10,7 +11,7 @@ pub enum LintSeverity {
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct LintResult {
     severity: LintSeverity,
-    message: &'static str,
+    message: String,
     code: LintCode,
     // TODO: add line + column
 }
@@ -21,12 +22,14 @@ pub enum LintCode {
     WarnServiceTypeShouldAlwaysBeExplicit               = 30_000,
     ErrorServiceSimpleMustHaveExecstart                 = 40_000,
     ErrorUnknownDirective                               = 40_001,
+    ErrorUnknownCategory                                = 40_002,
 }
 
 mod lint_missing_description;
 mod service_type_always_explicit;
 mod service_execstart_not_set;
 mod unknown_directive;
+mod unknown_category;
 
 use systemd_parser::items::SystemdUnit;
 
@@ -35,5 +38,6 @@ pub const ALL_LINTS : &'static [fn(&SystemdUnit) -> Result<(), LintResult>] = &[
     service_type_always_explicit::lint,
     service_execstart_not_set::lint,
     unknown_directive::lint,
+    unknown_category::lint,
 ];
 

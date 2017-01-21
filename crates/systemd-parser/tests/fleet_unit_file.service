@@ -1,0 +1,9 @@
+[Unit]
+Description=Some Monitoring Service
+
+[Service]
+ExecStart=/bin/monitorme
+
+[X-Fleet]
+MachineMetadata=location=chicago
+Conflicts=monitor*

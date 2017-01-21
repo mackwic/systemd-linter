@@ -14,7 +14,7 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 
         return Err(LintResult {
             severity: LintSeverity::Warning,
-            message: "Service Type= should always be explicit. Fill the Type= field.",
+            message: "Service Type= should always be explicit. Fill the Type= field.".into(),
             code: LintCode::WarnServiceTypeShouldAlwaysBeExplicit,
         })
     }

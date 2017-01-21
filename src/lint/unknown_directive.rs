@@ -1,6 +1,6 @@
 
 use lint::*;
-use rustc_serialize::json::{self, Json, ToJson};
+use rustc_serialize::json;
 use systemd_parser;
 use systemd_parser::items::*;
 use std::collections::HashMap;
@@ -13,7 +13,7 @@ struct DocumentedDirective {
    field: String,
 }
 
-fn open_and_parse_directive_files(file: &str) -> HashMap<String, DocumentedDirective> {
+fn open_and_parse_directive_files() -> HashMap<String, DocumentedDirective> {
     let vec : Vec<DocumentedDirective> = json::decode(DIRECTIVES).expect("json file should be ok");
     let mut res = HashMap::with_capacity(vec.len());
     for directive in vec {
@@ -24,22 +24,18 @@ fn open_and_parse_directive_files(file: &str) -> HashMap<String, DocumentedDirec
 
 pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 
-    let directives = open_and_parse_directive_files("./src/lint/directives.json");
-    const known_categories : &'static [&'static str] = &[
-        "Unit", "Service", "Install", "Mount", "Socket", "Automount", "BusName", "Path", "Timer"
-    ];
+    let directives = open_and_parse_directive_files();
 
     let has_unknown = unit.keys()
-                          .iter()
-                          .any(|unit_entry| {
-                              known_categories.contains(&unit_entry.category().as_ref()) &&
+                          .into_iter()
+                          .find(|unit_entry| {
                                 !directives.contains_key(&unit_entry.key())
                           });
 
-    if has_unknown {
+    if let Some(unknown_directive) = has_unknown {
         return Err(LintResult {
             severity: LintSeverity::Error,
-            message: "unknown directive found",
+            message: format!("Unknown directive found: {}", unknown_directive.key()),
             code: LintCode::ErrorUnknownDirective,
         });
     }
@@ -62,20 +58,6 @@ fn success_case_in_known_category() {
 }
 
 #[test]
-fn success_case_in_unknown_category() {
-    // arrange
-    let input = "
-        [X-Unit]
-        DescriptionFromOuterSpace= a dummy unit
-    ";
-    let unit = systemd_parser::parse_string(input).unwrap();
-    // act
-    let res = lint(&unit);
-    // assert
-    assert!(res.is_ok())
-}
-
-#[test]
 fn error_case() {
     // arrange
     let input = "
@@ -87,5 +69,19 @@ fn error_case() {
     let res = lint(&unit);
     // assert
     assert!(res.is_err());
+}
+
+#[test]
+fn error_case_message_contains_unknown_directive_name() {
+    // arrange
+    let input = "
+        [Service]
+        ExecStrat=/bin/true
+    ";
+    let unit = systemd_parser::parse_string(input).unwrap();
+    // act
+    let res = lint(&unit).unwrap_err();
+    // assert
+    assert!(res.message.contains("ExecStrat"))
 }
 

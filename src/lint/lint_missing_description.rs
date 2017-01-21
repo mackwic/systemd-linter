@@ -7,7 +7,7 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 
     let error = Err(LintResult {
         severity: LintSeverity::Lint,
-        message: "Consider filling the Description= field",
+        message: "Consider filling the Description= field".into(),
         code: LintCode::LintMissingDescription,
     });
 

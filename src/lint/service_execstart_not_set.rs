@@ -16,7 +16,7 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
         if let None = unit.lookup_by_key("ExecStart") {
             return Err(LintResult {
                 severity: LintSeverity::Error,
-                message: "Service with Type==Simple MUST set ExecStart= field",
+                message: "Service with Type==Simple MUST set ExecStart= field".into(),
                 code: LintCode::ErrorServiceSimpleMustHaveExecstart,
             })
         }

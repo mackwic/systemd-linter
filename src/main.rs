@@ -45,13 +45,14 @@ fn format_res_and_exit<T, Err : std::error::Error>(err: Err, msg: &str) -> T {
     error_and_exit(msg)
 }
 
+#[allow(unreachable_code)]
 fn error_and_exit<T>(msg: String) -> T {
     use colored::*;
     use std::io::stderr;
     use std::io::Write;
     use std::process::exit;
 
-    writeln!(stderr(), "{}: {}", "Error".red().bold(), msg.red());
+    let _ = writeln!(stderr(), "{}: {}", "Error".red().bold(), msg.red());
     exit(1);
     unreachable!()
 }
