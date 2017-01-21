@@ -18,7 +18,7 @@ pub fn main() {
     use std::path::Path;
 
     let matches = App::new("systemd-lint")
-        .version("0.1.0")
+        .version("0.1.4")
         .author("Thomas Wickham <twickham@octo.com>")
         .about("lint systemd unit files")
         .arg(Arg::with_name("INPUT")

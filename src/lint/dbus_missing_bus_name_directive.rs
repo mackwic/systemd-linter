@@ -6,7 +6,7 @@ use systemd_parser::items::*;
 pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 
     // Skip the lint if Type is not dbus
-    if !unit.key_may_have_solo_value("Type", "dbus") {
+    if !unit.key_have_solo_value("Type", "dbus") {
         return Ok(());
     }
 
@@ -37,6 +37,35 @@ fn success_case() {
     let res = lint(&unit);
     // assert
     assert!(res.is_ok())
+}
+
+#[test]
+fn success_case_not_dbus_service() {
+    // arrange
+    let input = "
+        [Service]
+        Type=simple
+        ExecStart=/bin/true
+    ";
+    let unit = systemd_parser::parse_string(input).unwrap();
+    // act
+    let res = lint(&unit);
+    // assert
+    assert!(res.is_ok());
+}
+
+#[test]
+fn success_case_not_service() {
+    // arrange
+    let input = "
+        [Unit]
+        Description= a dummy file
+    ";
+    let unit = systemd_parser::parse_string(input).unwrap();
+    // act
+    let res = lint(&unit);
+    // assert
+    assert!(res.is_ok());
 }
 
 #[test]
