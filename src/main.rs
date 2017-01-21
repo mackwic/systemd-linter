@@ -7,6 +7,7 @@ extern crate colored;
 extern crate rustc_serialize;
 extern crate systemd_parser;
 
+mod support;
 mod lint;
 
 use clap::{Arg, App};
