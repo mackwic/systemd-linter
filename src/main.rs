@@ -1,4 +1,7 @@
 
+#![cfg_attr(feature="clippy", feature(plugin))]
+#![cfg_attr(feature="clippy", plugin(clippy))]
+
 extern crate clap;
 extern crate colored;
 extern crate rustc_serialize;
@@ -30,6 +33,7 @@ pub fn main() {
     let mut contents = String::with_capacity(4096);
     let mut file = File::open(filepath)
         .unwrap_or_else(|err| format_res_and_exit(err, "file is not readable"));
+
     file.read_to_string(&mut contents)
         .unwrap_or_else(|err| format_res_and_exit(err, "error when reading file"));
 

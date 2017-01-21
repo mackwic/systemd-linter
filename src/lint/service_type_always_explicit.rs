@@ -9,7 +9,7 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
         return Ok(());
     }
 
-    if let None = unit.lookup_by_key("Type") {
+    if !unit.has_key("Type") {
 
         return Err(LintResult {
             severity: LintSeverity::Warning,

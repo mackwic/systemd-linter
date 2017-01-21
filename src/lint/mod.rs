@@ -33,7 +33,9 @@ mod unknown_category;
 
 use systemd_parser::items::SystemdUnit;
 
-pub const ALL_LINTS: &'static [fn(&SystemdUnit) -> Result<(), LintResult>] =
+type LintFunction = fn(&SystemdUnit) -> Result<(), LintResult>;
+
+pub const ALL_LINTS: &'static [LintFunction] =
     &[lint_missing_description::lint,
       service_type_always_explicit::lint,
       service_execstart_not_set::lint,

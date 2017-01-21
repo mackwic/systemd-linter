@@ -1,4 +1,6 @@
 
+#![allow(dead_code)]
+
 extern crate itertools;
 #[macro_use]
 extern crate nom;
