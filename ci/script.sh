@@ -7,11 +7,11 @@ main() {
     cross build --target $TARGET
     cross build --target $TARGET --release
 
-    if [ -n $DISABLE_TESTS ]; then
+    if [[ $DISABLE_TESTS = "1" ]]; then
         return
     fi
 
-    for subcrate in ../crates/*
+    for subcrate in crates/*
     do
         cd $subcrate
         cross test --target $TARGET
@@ -22,8 +22,8 @@ main() {
     cross test --target $TARGET
     cross test --target $TARGET --release
 
-    cross run --target $TARGET
-    cross run --target $TARGET --release
+    cross run --target $TARGET -- --help
+    cross run --target $TARGET --release -- --help
 }
 
 # we don't run the "test phase" when doing deploys
