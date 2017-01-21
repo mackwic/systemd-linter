@@ -2,9 +2,8 @@
 use lint::*;
 use systemd_parser::items::*;
 
-static KNOWN_CATEGORIES : &'static [&'static str] = &[
-    "Unit", "Service", "Install", "Mount", "Socket", "Automount", "BusName", "Path", "Timer"
-];
+static KNOWN_CATEGORIES: &'static [&'static str] =
+    &["Unit", "Service", "Install", "Mount", "Socket", "Automount", "BusName", "Path", "Timer"];
 
 pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 
@@ -105,5 +104,3 @@ fn success_lint_should_skip_x_categories() {
     // assert
     assert!(res.is_ok())
 }
-
-

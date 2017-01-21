@@ -14,20 +14,22 @@ pub fn main() {
     use std::path::Path;
 
     let matches = App::new("systemd-lint")
-                    .version("0.1.0")
-                    .author("Thomas Wickham <twickham@octo.com>")
-                    .about("lint systemd unit files")
-                    .arg(Arg::with_name("INPUT")
-                         .help("Sets the input file to use")
-                         .required(true))
-                    .get_matches();
+        .version("0.1.0")
+        .author("Thomas Wickham <twickham@octo.com>")
+        .about("lint systemd unit files")
+        .arg(Arg::with_name("INPUT")
+            .help("Sets the input file to use")
+            .required(true))
+        .get_matches();
 
     let filepath = Path::new(matches.value_of("INPUT").expect("clap should ensure INPUT is set"));
-    if !filepath.exists() { error_and_exit("path does not exists !".into()) }
+    if !filepath.exists() {
+        error_and_exit("path does not exists !".into())
+    }
 
     let mut contents = String::with_capacity(4096);
     let mut file = File::open(filepath)
-                         .unwrap_or_else(|err| format_res_and_exit(err, "file is not readable"));
+        .unwrap_or_else(|err| format_res_and_exit(err, "file is not readable"));
     file.read_to_string(&mut contents)
         .unwrap_or_else(|err| format_res_and_exit(err, "error when reading file"));
 
@@ -49,7 +51,7 @@ pub fn main() {
     }
 }
 
-fn format_res_and_exit<T, Err : std::error::Error>(err: Err, msg: &str) -> T {
+fn format_res_and_exit<T, Err: std::error::Error>(err: Err, msg: &str) -> T {
     let msg = format!("{}: {}", msg, err);
     error_and_exit(msg)
 }
@@ -65,4 +67,3 @@ fn error_and_exit<T>(msg: String) -> T {
     exit(1);
     unreachable!()
 }
-

@@ -13,7 +13,7 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
     match unit.lookup_by_key("Description") {
         None => return error,
         Some(&DirectiveEntry::Solo(ref entry)) if entry.value().is_none() => return error,
-        _ => Ok(())
+        _ => Ok(()),
     }
 }
 
@@ -65,4 +65,3 @@ fn error_case_missing_value() {
     // assert
     assert!(res.is_err());
 }
-

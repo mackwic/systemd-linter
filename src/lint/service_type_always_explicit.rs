@@ -6,7 +6,7 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
 
     // first check it's a service
     if !unit.has_category("Service") {
-        return Ok(())
+        return Ok(());
     }
 
     if let None = unit.lookup_by_key("Type") {
@@ -15,7 +15,7 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
             severity: LintSeverity::Warning,
             message: "Service Type= should always be explicit. Fill the Type= field.".into(),
             code: LintCode::WarnServiceTypeShouldAlwaysBeExplicit,
-        })
+        });
     }
 
     Ok(())
@@ -52,4 +52,3 @@ fn error_case() {
     // assert
     assert!(res.is_err());
 }
-

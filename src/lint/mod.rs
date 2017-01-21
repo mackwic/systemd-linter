@@ -10,10 +10,10 @@ pub enum LintSeverity {
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct LintResult {
+    // TODO: add line + column
     severity: LintSeverity,
     message: String,
     code: LintCode,
-    // TODO: add line + column
 }
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
@@ -33,11 +33,9 @@ mod unknown_category;
 
 use systemd_parser::items::SystemdUnit;
 
-pub const ALL_LINTS : &'static [fn(&SystemdUnit) -> Result<(), LintResult>] = &[
-    lint_missing_description::lint,
-    service_type_always_explicit::lint,
-    service_execstart_not_set::lint,
-    unknown_directive::lint,
-    unknown_category::lint,
-];
-
+pub const ALL_LINTS: &'static [fn(&SystemdUnit) -> Result<(), LintResult>] =
+    &[lint_missing_description::lint,
+      service_type_always_explicit::lint,
+      service_execstart_not_set::lint,
+      unknown_directive::lint,
+      unknown_category::lint];

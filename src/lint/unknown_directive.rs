@@ -4,16 +4,16 @@ use rustc_serialize::json;
 use systemd_parser::items::*;
 use std::collections::HashMap;
 
-static DIRECTIVES : &'static str = include_str!("./directives.json");
+static DIRECTIVES: &'static str = include_str!("./directives.json");
 
 #[derive(PartialEq, Eq, Clone, Debug, RustcDecodable)]
 struct DocumentedDirective {
-   url: String,
-   field: String,
+    url: String,
+    field: String,
 }
 
 fn open_and_parse_directive_files() -> HashMap<String, DocumentedDirective> {
-    let vec : Vec<DocumentedDirective> = json::decode(DIRECTIVES).expect("json file should be ok");
+    let vec: Vec<DocumentedDirective> = json::decode(DIRECTIVES).expect("json file should be ok");
     let mut res = HashMap::with_capacity(vec.len());
     for directive in vec {
         res.insert(directive.field.clone(), directive);
@@ -33,11 +33,10 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
     let directives = open_and_parse_directive_files();
 
     let has_unknown = unit.keys()
-                          .into_iter()
-                          .find(|unit_entry| {
-                              !directives.contains_key(&unit_entry.key()) &&
-                                  !should_be_skipped(unit_entry)
-                          });
+        .into_iter()
+        .find(|unit_entry| {
+            !directives.contains_key(&unit_entry.key()) && !should_be_skipped(unit_entry)
+        });
 
     if let Some(unknown_directive) = has_unknown {
         return Err(LintResult {
@@ -108,4 +107,3 @@ fn error_case_message_contains_unknown_directive_name() {
     // assert
     assert!(res.message.contains("ExecStrat"))
 }
-

@@ -9,7 +9,7 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
         println!("{:?}", type_entry.value());
 
         if type_entry.value() != Some("Simple") {
-            return Ok(())
+            return Ok(());
         }
 
         if let None = unit.lookup_by_key("ExecStart") {
@@ -17,7 +17,7 @@ pub fn lint(unit: &SystemdUnit) -> Result<(), LintResult> {
                 severity: LintSeverity::Error,
                 message: "Service with Type==Simple MUST set ExecStart= field".into(),
                 code: LintCode::ErrorServiceSimpleMustHaveExecstart,
-            })
+            });
         }
     }
 
